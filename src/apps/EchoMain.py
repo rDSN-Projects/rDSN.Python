@@ -1,6 +1,6 @@
 __author__ = 'v-lshen'
 
-from python_dev_v2.apps.EchoAppExample import *
+from app_package.EchoAppExample import *
 
 
 def start():

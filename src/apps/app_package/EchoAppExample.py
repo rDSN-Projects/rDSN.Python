@@ -1,8 +1,8 @@
 __author__ = 'v-lshen'
 
-from python_dev_v2.apps.EchoCodeDefinition import *
-from python_dev_v2.apps.EchoServer import *
-from python_dev_v2.apps.EchoClient import *
+from .EchoCodeDefinition import *
+from .EchoServer import *
+from .EchoClient import *
 
 
 class EchoServiceClient(ServiceApp):
