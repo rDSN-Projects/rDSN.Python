@@ -18,7 +18,6 @@ class EchoServiceClient(ServiceApp):
         self.__server = RpcAddress()
         addr = Clientlet.build_address(argv[1], int(argv[2]))
         self.__server.set_addr(addr)
-        #Clientlet.build_address(self.__server.get_addr(), argv[1], int(argv[2])) #TODO
         self.__echo_client = EchoClient(self.__server)
         self.__task = Clientlet.call_async(LPC_ECHO_TIMER2, self, self.timer, 0, 0, 0)
         return ERR_OK.get_err()

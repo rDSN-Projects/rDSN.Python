@@ -4,7 +4,7 @@ from ctypes import *
 import os
 
 dll_core = CDLL(os.getcwd() + '\dsn.core.dll')
-dll_helper = CDLL(os.getcwd() + '\python_helper.dll')
+dll_helper = CDLL(os.getcwd() + '\dsn.dev.python_helper.dll')
 
 dsn_task_type_t = {'TASK_TYPE_RPC_REQUEST':0, 'TASK_TYPE_RPC_RESPONSE':1, 'TASK_TYPE_COMPUTE':2, 'TASK_TYPE_AIO':3, 'TASK_TYPE_CONTINUATION':4, 'TASK_TYPE_COUNT':5, 'TASK_TYPE_INVALID':6}
 dsn_task_priority_t = {'TASK_PRIORITY_LOW':0, 'TASK_PRIORITY_COMMON':1, 'TASK_PRIORITY_HIGH':2, 'TASK_PRIORITY_COUNT':3, 'TASK_PRIORITY_INVALID':4}
@@ -45,6 +45,7 @@ class Native:
 
     @staticmethod
     def dsn_address_build(host, port):
+        dll_helper.dsn_address_build_helper.restype = c_ulonglong
         return dll_helper.dsn_address_build_helper(host.encode(), port)
 
     @staticmethod
@@ -61,7 +62,7 @@ class Native:
 
     @staticmethod
     def dsn_rpc_call(addr, rpc_call, tracker):
-        return dll_helper.dsn_rpc_call_helper(addr, c_void_p(rpc_call), c_void_p(tracker))
+        return dll_helper.dsn_rpc_call_helper(c_ulonglong(addr), c_void_p(rpc_call), c_void_p(tracker))
 
     @staticmethod
     def dsn_rpc_create_response_task(msg, param, reply_hash):
@@ -101,7 +102,7 @@ class Native:
 
     @staticmethod
     def dsn_rpc_call_wait(addr, request, ss):
-        return dll_helper.dsn_rpc_call_wait_helper(addr, request, c_char_p(ss))
+        return dll_helper.dsn_rpc_call_wait_helper(c_ulonglong(addr), request, c_char_p(ss))
 
     @staticmethod
     def dsn_rpc_unregiser_handler(code):

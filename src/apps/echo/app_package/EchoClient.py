@@ -44,8 +44,7 @@ class EchoClient:
         #next_addr = DsnAddressT()
         #next_addr.ip = int(unpacked_data[2])
         #next_addr.port = int(unpacked_data[3])
-        next_addr = c_ulonglong() #TODO
         next_addr = RpcAddress()
-        addr = Clientlet.build_address(b'localhost', 8101)
+        addr = Clientlet.build_address('localhost', 8101)
         next_addr.set_addr(addr)
         Clientlet.rpc_call_async(RPC_ECHO, next_addr.get_addr(), request_content, EchoClient, EchoClient.on_timer_echo_callback, 0)

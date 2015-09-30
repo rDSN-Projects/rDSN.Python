@@ -25,18 +25,9 @@ class ErrorCode:
 ERR_OK = ErrorCode(None, None, 'ERR_OK')
 
 
-class DsnAddressT(Structure):
-    _fields_ = [("type", c_int),
-                ("port", c_int),
-                ("ip", c_int),
-                ("ipv6", c_char*4),
-                ("uri", c_char*1000)]
-
-
 class RpcAddress:
     __addr = None
     def __init__(self, ad = None):
-        #self.__addr = DsnAddressT() #TODO
         self.__addr = c_ulonglong()
         if(ad != None):
             self.__addr = ad

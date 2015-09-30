@@ -83,9 +83,8 @@ static dsn_error_t app_start(void* app, int argc, char** argv)
 		PyList_SetItem(pList, i, Py_BuildValue("s", argv[i]));
 	}
 	PyTuple_SetItem(pArgs, 2, pList);
-
 	pReturn = PyEval_CallObject(pFunc, pArgs);
-
+	
 	int result;
 	PyArg_Parse(pReturn, "i", &result);
 
@@ -120,16 +119,6 @@ static void app_destroy(void* app, bool cleanup)
 	PyGILState_Release(gstate);
 	return;
 }
-
-typedef struct
-{
-	int type;
-	int port;
-	int padding;
-	int ip;
-	char ipv6[4];
-	char uri[1000];
-}dsn_address_t1;
 
 typedef struct
 {
@@ -211,13 +200,6 @@ void dsn_task_call_helper(dsn_task_t task, dsn_task_tracker_t tracker, int delay
 // rpc helper
 uint64_t dsn_address_build_helper(const char* host, int port)
 {
-	/*
-	dsn_address_t* addr_c = new dsn_address_t();
-
-	dsn_address_build(addr_c, host, port);
-	addr->ip = addr_c->ip;
-	addr->port = addr_c->port;
-	*/
 	return *(uint64_t*)&dsn_address_build(host, port);
 }
 
@@ -288,29 +270,11 @@ dsn_task_t dsn_rpc_create_response_task_helper(dsn_message_t msg, int param, int
 // dsn_rpc_call(ref dsn_address_t server, dsn_task_t rpc_call, dsn_task_tracker_t tracker);
 void dsn_rpc_call_helper(uint64_t addr, dsn_task_t rpc_call, dsn_task_tracker_t tracker)
 {
-	/*
-	// dsn_rpc_call start
-	dsn_address_t* addr_c = new dsn_address_t();
-	addr_c->type = HOST_TYPE_IPV4; // addr->type = 0
-	addr_c->ip = addr->ip;
-	addr_c->port = addr->port;
-	// dsn_rpc_call end
-	dsn_rpc_call(addr_c, rpc_call, nullptr); // set tracker null
-	*/
 	dsn_rpc_call(*(dsn_address_t*)&addr, rpc_call, nullptr); // set tracker null
 }
 
 void* dsn_rpc_call_wait_helper(uint64_t addr, dsn_message_t msg, char *ss)
 {
-	/*
-	// dsn_rpc_call_wait_helper start
-	dsn_address_t* addr_c = new dsn_address_t();
-	addr_c->type = HOST_TYPE_IPV4; // addr->type = 0
-	addr_c->ip = addr->ip;
-	addr_c->port = addr->port;
-	// dsn_rpc_call end
-	dsn_message_t resp = dsn_rpc_call_wait(addr_c, msg);
-	*/
 	dsn_message_t resp = dsn_rpc_call_wait(*(dsn_address_t*)&addr, msg);
 
 	void* ptr;
