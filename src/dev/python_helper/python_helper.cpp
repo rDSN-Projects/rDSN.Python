@@ -40,7 +40,7 @@ static void* app_create(const char* tname)
 	PyObject * pArgs = NULL;
 	PyObject * pReturn = NULL;
 
-	pModule = PyImport_ImportModule("dev.ServiceApp");
+	pModule = PyImport_ImportModule("dev.python.ServiceApp");
 	pDict = PyModule_GetDict(pModule);
 	pClass = PyDict_GetItemString(pDict, "ServiceApp");
 	pFunc = PyObject_GetAttrString(pClass, "app_create");
@@ -69,7 +69,7 @@ static dsn_error_t app_start(void* app, int argc, char** argv)
 	PyObject* pFunc = NULL;
 	PyObject * pArgs = NULL;
 	PyObject * pReturn = NULL;
-	pModule = PyImport_ImportModule("dev.ServiceApp");
+	pModule = PyImport_ImportModule("dev.python.ServiceApp");
 	
 	pDict = PyModule_GetDict(pModule);
 	pClass = PyDict_GetItemString(pDict, "ServiceApp");
@@ -107,7 +107,7 @@ static void app_destroy(void* app, bool cleanup)
 	PyObject * pArgs = NULL;
 	PyObject * pReturn = NULL;
 
-	pModule = PyImport_ImportModule("dev.ServiceApp");
+	pModule = PyImport_ImportModule("dev.python.ServiceApp");
 	pDict = PyModule_GetDict(pModule);
 	pClass = PyDict_GetItemString(pDict, "ServiceApp");
 	pFunc = PyObject_GetAttrString(pClass, "app_destroy");
@@ -179,7 +179,7 @@ static void task_handler(void *param)
 	PyObject* pFunc = NULL;
 	PyObject * pArgs = NULL;
 	PyObject * pReturn = NULL;
-	pModule = PyImport_ImportModule("dev.InterOpLookupTable");
+	pModule = PyImport_ImportModule("dev.python.InterOpLookupTable");
 	pDict = PyModule_GetDict(pModule);
 	pClass = PyDict_GetItemString(pDict, "InterOpLookupTable");
 	pFunc = PyObject_GetAttrString(pClass, "task_handler");
@@ -239,7 +239,7 @@ PyObject* tls_get_rpc_response_function()
 		PyObject* pClass = NULL;
 		PyObject * pArgs = NULL;
 		PyObject * pReturn = NULL;
-		pModule = PyImport_ImportModule("dev.InterOpLookupTable");
+		pModule = PyImport_ImportModule("dev.python.InterOpLookupTable");
 		pDict = PyModule_GetDict(pModule);
 		pClass = PyDict_GetItemString(pDict, "InterOpLookupTable");
 		pFunc = PyObject_GetAttrString(pClass, "on_timer_handler");
@@ -356,7 +356,7 @@ PyObject* tls_get_rpc_request_function()
 		PyObject* pClass = NULL;
 		PyObject * pArgs = NULL;
 		PyObject * pReturn = NULL;
-		pModule = PyImport_ImportModule("dev.InterOpLookupTable");
+		pModule = PyImport_ImportModule("dev.python.InterOpLookupTable");
 		pDict = PyModule_GetDict(pModule);
 		pClass = PyDict_GetItemString(pDict, "InterOpLookupTable");
 		pFunc = PyObject_GetAttrString(pClass, "on_request_handler");
