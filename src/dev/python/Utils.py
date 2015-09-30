@@ -36,12 +36,16 @@ class DsnAddressT(Structure):
 class RpcAddress:
     __addr = None
     def __init__(self, ad = None):
-        self.__addr = DsnAddressT()
+        #self.__addr = DsnAddressT() #TODO
+        self.__addr = c_ulonglong()
         if(ad != None):
             self.__addr = ad
 
     def get_addr(self):
         return self.__addr
+
+    def set_addr(self, addr):
+        self.__addr = addr
 
 
 class TaskCode:

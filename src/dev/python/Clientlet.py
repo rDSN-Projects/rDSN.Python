@@ -7,8 +7,8 @@ from .RpcStream import *
 class Clientlet:
 
     @staticmethod
-    def build_address(addr, argv1, argv2):
-         Native.dsn_address_build(addr, argv1, argv2)
+    def build_address(argv1, argv2):
+         return Native.dsn_address_build(argv1, argv2)
 
     @staticmethod
     def call_async(evt, callback_owner, callback, hash = 0, delay_milliseconds = 0, timer_interval_milliseconds = 0):

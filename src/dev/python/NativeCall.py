@@ -44,8 +44,8 @@ class Native:
         return dll_helper.dsn_run_helper(argc, argv, sleep_after_init)
 
     @staticmethod
-    def dsn_address_build(ep, host, port):
-        dll_helper.dsn_address_build_helper(byref(ep), host.encode(), port)
+    def dsn_address_build(host, port):
+        return dll_helper.dsn_address_build_helper(host.encode(), port)
 
     @staticmethod
     def dsn_task_create(code, param, hash):
@@ -61,7 +61,7 @@ class Native:
 
     @staticmethod
     def dsn_rpc_call(addr, rpc_call, tracker):
-        return dll_helper.dsn_rpc_call_helper(byref(addr), c_void_p(rpc_call), c_void_p(tracker))
+        return dll_helper.dsn_rpc_call_helper(addr, c_void_p(rpc_call), c_void_p(tracker))
 
     @staticmethod
     def dsn_rpc_create_response_task(msg, param, reply_hash):
@@ -101,7 +101,7 @@ class Native:
 
     @staticmethod
     def dsn_rpc_call_wait(addr, request, ss):
-        return dll_helper.dsn_rpc_call_wait_helper(byref(addr), request, c_char_p(ss))
+        return dll_helper.dsn_rpc_call_wait_helper(addr, request, c_char_p(ss))
 
     @staticmethod
     def dsn_rpc_unregiser_handler(code):

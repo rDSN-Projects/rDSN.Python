@@ -16,7 +16,7 @@ typedef void*       (*dsn_app_create)(          // return app_context,
 	const char*     // type name registered on dsn_register_app_role
 	);
 
-typedef dsn_error_t (*dsn_app_start)(
+typedef dsn_error_t(*dsn_app_start)(
 	void*,          // context return by app_create
 	int,            // argc
 	char**          // argv
@@ -70,7 +70,7 @@ static dsn_error_t app_start(void* app, int argc, char** argv)
 	PyObject * pArgs = NULL;
 	PyObject * pReturn = NULL;
 	pModule = PyImport_ImportModule("dev.python.ServiceApp");
-	
+
 	pDict = PyModule_GetDict(pModule);
 	pClass = PyDict_GetItemString(pDict, "ServiceApp");
 	pFunc = PyObject_GetAttrString(pClass, "app_start");
@@ -86,7 +86,7 @@ static dsn_error_t app_start(void* app, int argc, char** argv)
 	PyTuple_SetItem(pArgs, 2, pList);
 
 	pReturn = PyEval_CallObject(pFunc, pArgs);
-	
+
 	int result;
 	PyArg_Parse(pReturn, "i", &result);
 
@@ -126,6 +126,7 @@ typedef struct
 {
 	int type;
 	int port;
+	int padding;
 	int ip;
 	char ipv6[4];
 	char uri[1000];
@@ -144,9 +145,9 @@ extern "C"
 	__declspec(dllexport) void dsn_task_call_helper(dsn_task_t task, dsn_task_tracker_t tracker, int delay_milliseconds);
 	__declspec(dllexport) dsn_task_t dsn_task_create_helper(dsn_task_code_t code, void* param, int hash);
 	__declspec(dllexport) dsn_task_t dsn_task_create_timer_helper(dsn_task_code_t code, void* param, int hash, int interval_milliseconds);
-	__declspec(dllexport) void dsn_address_build_helper(dsn_address_t1* addr, const char* host, int port);
-	__declspec(dllexport) void dsn_rpc_call_helper(dsn_address_t1* addr, dsn_task_t rpc_call, dsn_task_tracker_t tracker);
-	__declspec(dllexport) void* dsn_rpc_call_wait_helper(dsn_address_t1* addr, dsn_message_t msg, char *ss);
+	__declspec(dllexport) uint64_t dsn_address_build_helper(const char* host, int port);
+	__declspec(dllexport) void dsn_rpc_call_helper(uint64_t addr, dsn_task_t rpc_call, dsn_task_tracker_t tracker);
+	__declspec(dllexport) void* dsn_rpc_call_wait_helper(uint64_t addr, dsn_message_t msg, char *ss);
 	__declspec(dllexport) dsn_task_t dsn_rpc_create_response_task_helper(dsn_message_t msg, int param, int reply_hash);
 	__declspec(dllexport) dsn_message_t dsn_msg_create_request_helper(dsn_task_code_t code, int timeout_milliseconds, int request_hash);
 	__declspec(dllexport) dsn_task_code_t dsn_task_code_register_helper(const char* name, int type, int pri, dsn_threadpool_code_t pool);
@@ -209,13 +210,16 @@ void dsn_task_call_helper(dsn_task_t task, dsn_task_tracker_t tracker, int delay
 }
 
 // rpc helper
-void dsn_address_build_helper(dsn_address_t1* addr, const char* host, int port)
+uint64_t dsn_address_build_helper(const char* host, int port)
 {
+	/*
 	dsn_address_t* addr_c = new dsn_address_t();
 
 	dsn_address_build(addr_c, host, port);
 	addr->ip = addr_c->ip;
 	addr->port = addr_c->port;
+	*/
+	return *(uint64_t*)&dsn_address_build(host, port);
 }
 
 static __thread struct __tls_timer_function__
@@ -283,8 +287,9 @@ dsn_task_t dsn_rpc_create_response_task_helper(dsn_message_t msg, int param, int
 }
 
 // dsn_rpc_call(ref dsn_address_t server, dsn_task_t rpc_call, dsn_task_tracker_t tracker);
-void dsn_rpc_call_helper(dsn_address_t1* addr, dsn_task_t rpc_call, dsn_task_tracker_t tracker)
+void dsn_rpc_call_helper(uint64_t addr, dsn_task_t rpc_call, dsn_task_tracker_t tracker)
 {
+	/*
 	// dsn_rpc_call start
 	dsn_address_t* addr_c = new dsn_address_t();
 	addr_c->type = HOST_TYPE_IPV4; // addr->type = 0
@@ -292,10 +297,13 @@ void dsn_rpc_call_helper(dsn_address_t1* addr, dsn_task_t rpc_call, dsn_task_tra
 	addr_c->port = addr->port;
 	// dsn_rpc_call end
 	dsn_rpc_call(addr_c, rpc_call, nullptr); // set tracker null
+	*/
+	dsn_rpc_call(*(dsn_address_t*)&addr, rpc_call, nullptr); // set tracker null
 }
 
-void* dsn_rpc_call_wait_helper(dsn_address_t1* addr, dsn_message_t msg, char *ss)
+void* dsn_rpc_call_wait_helper(uint64_t addr, dsn_message_t msg, char *ss)
 {
+	/*
 	// dsn_rpc_call_wait_helper start
 	dsn_address_t* addr_c = new dsn_address_t();
 	addr_c->type = HOST_TYPE_IPV4; // addr->type = 0
@@ -303,7 +311,9 @@ void* dsn_rpc_call_wait_helper(dsn_address_t1* addr, dsn_message_t msg, char *ss
 	addr_c->port = addr->port;
 	// dsn_rpc_call end
 	dsn_message_t resp = dsn_rpc_call_wait(addr_c, msg);
-	
+	*/
+	dsn_message_t resp = dsn_rpc_call_wait(*(dsn_address_t*)&addr, msg);
+
 	void* ptr;
 	size_t size;
 	dsn_msg_read_next(resp, &ptr, &size);
@@ -317,7 +327,7 @@ void marshall_helper(dsn_message_t msg, char* request_content)
 {
 	void* ptr;
 	size_t size;
-	size_t count = strlen(request_content)+1;
+	size_t count = strlen(request_content) + 1;
 	dsn_msg_write_next(msg, &ptr, &size, count);
 	memcpy_s(ptr, size, request_content, count);
 	dsn_msg_write_commit(msg, count);
@@ -326,10 +336,10 @@ void marshall_helper(dsn_message_t msg, char* request_content)
 void marshall_int_msg_helper(int msg_int, char* request_content)
 {
 	dsn_message_t msg = (dsn_message_t)msg_int;
-	
+
 	void* ptr;
 	size_t size;
-	size_t count = strlen(request_content)+1;
+	size_t count = strlen(request_content) + 1;
 	dsn_msg_write_next(msg, &ptr, &size, count);
 	memcpy_s(ptr, size, request_content, count);
 	dsn_msg_write_commit(msg, count);
@@ -395,7 +405,7 @@ static void rpc_request_handler(dsn_message_t rpc_request, void* param)
 
 	// rpc request handler end
 	PyGILState_Release(gstate);
-	
+
 	return;
 }
 
