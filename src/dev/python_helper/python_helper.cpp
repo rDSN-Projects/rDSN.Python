@@ -1,13 +1,12 @@
 // python_helper.cpp : Defines the entry point for the console application.
 //
 
-# include "stdafx.h"
 # include <dsn/service_api_c.h>
 # include <dsn/ports.h>
 # include <iostream>
 
 //# undef _DEBUG
-# include "C:\python\include\Python.h"
+# include "Python.h"
 
 typedef int         dsn_error_t;
 // rDSN allows many apps in the same process for easy deployment and test
@@ -414,9 +413,3 @@ bool dsn_rpc_register_handler_helper(dsn_task_code_t code, const char* name, int
 {
 	return dsn_rpc_register_handler(code, name, rpc_request_handler, (void *)param);
 }
-
-int main(int argc, _TCHAR* argv[])
-{
-	return 0;
-}
-
