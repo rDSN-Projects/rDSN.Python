@@ -10,11 +10,13 @@ set(MY_PROJ_SRC "")
 # "GLOB" for non-recursive search
 set(MY_SRC_SEARCH_MODE "GLOB_RECURSE")
 
-set(MY_PROJ_INC_PATH "${PYTHONPATH}/include")
+find_package(PythonLibs)
 
-set(MY_PROJ_LIBS "python34")
+set(MY_PROJ_INC_PATH "${PYTHON_INCLUDE_DIRS}")
 
-set(MY_PROJ_LIB_PATH "${PYTHONPATH}/libs" "${PYTHONPATH}/lib")
+set(MY_PROJ_LIBS "${PYTHON_LIBRARIES}")
+
+set(MY_PROJ_LIB_PATH "")
 
 # Extra files that will be installed
 set(MY_BINPLACES "")
