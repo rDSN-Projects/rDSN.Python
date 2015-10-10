@@ -5,16 +5,16 @@
 # include <dsn/ports.h>
 # include <iostream>
 # include <string.h>
-
+# include <time.h>
 //# undef _DEBUG
 # include "Python.h"
 
-# if defined(_WIN32)
-# define EXPORT __declspec(dllexport)
+//# if defined(_WIN32)
+//# define DSN_API __declspec(dllexport)
 
-# elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
-# define EXPORT __attribute__((visibility("default")))
-# endif
+//# elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+//# define DSN_API __attribute__((visibility("default")))
+//# endif
 
 typedef int         dsn_error_t;
 // rDSN allows many apps in the same process for easy deployment and test
@@ -57,11 +57,11 @@ static void* app_create(const char* tname)
 
 	pReturn = PyEval_CallObject(pFunc, pArgs);
 
-	int result;
-	PyArg_Parse(pReturn, "i", &result);
+	uint64_t result;
+	PyArg_Parse(pReturn, "k", &result);
 
 	PyGILState_Release(gstate);
-	return (void*)(intptr_t)result;
+	return (void*)(uint64_t)result;
 }
 
 static dsn_error_t app_start(void* app, int argc, char** argv)
@@ -83,7 +83,7 @@ static dsn_error_t app_start(void* app, int argc, char** argv)
 	pFunc = PyObject_GetAttrString(pClass, "app_start");
 
 	pArgs = PyTuple_New(3);
-	PyTuple_SetItem(pArgs, 0, Py_BuildValue("i", *(int*)&app));
+	PyTuple_SetItem(pArgs, 0, Py_BuildValue("k", *(uint64_t*)&app));
 	PyTuple_SetItem(pArgs, 1, Py_BuildValue("i", argc));
 	PyObject* pList = PyList_New(argc);
 	for (int i = 0; i < argc; i++)
@@ -119,7 +119,7 @@ static void app_destroy(void* app, bool cleanup)
 	pFunc = PyObject_GetAttrString(pClass, "app_destroy");
 
 	pArgs = PyTuple_New(2);
-	PyTuple_SetItem(pArgs, 0, Py_BuildValue("i", *(int*)&app));
+	PyTuple_SetItem(pArgs, 0, Py_BuildValue("k", *(uint64_t*)&app));
 	PyTuple_SetItem(pArgs, 1, Py_BuildValue("i", *(int*)&cleanup));
 
 	pReturn = PyEval_CallObject(pFunc, pArgs);
@@ -136,20 +136,20 @@ typedef struct
 
 extern "C"
 {
-	EXPORT bool dsn_register_app_role_helper(const char* type_name, const char* create, const char* start, dsn_app_destroy destroy);
-	EXPORT void dsn_run_helper(int argc, char** argv, bool sleep_after_init);
-	EXPORT void dsn_task_call_helper(dsn_task_t task, dsn_task_tracker_t tracker, int delay_milliseconds);
-	EXPORT dsn_task_t dsn_task_create_helper(dsn_task_code_t code, void* param, int hash);
-	EXPORT dsn_task_t dsn_task_create_timer_helper(dsn_task_code_t code, void* param, int hash, int interval_milliseconds);
-	EXPORT uint64_t dsn_address_build_helper(const char* host, int port);
-	EXPORT void dsn_rpc_call_helper(uint64_t addr, dsn_task_t rpc_call, dsn_task_tracker_t tracker);
-	EXPORT void* dsn_rpc_call_wait_helper(uint64_t addr, dsn_message_t msg, char *ss);
-	EXPORT dsn_task_t dsn_rpc_create_response_task_helper(dsn_message_t msg, int param, int reply_hash);
-	EXPORT dsn_message_t dsn_msg_create_request_helper(dsn_task_code_t code, int timeout_milliseconds, int request_hash);
-	EXPORT dsn_task_code_t dsn_task_code_register_helper(const char* name, int type, int pri, dsn_threadpool_code_t pool);
-	EXPORT void marshall_helper(dsn_message_t msg, char* request_content);
-	EXPORT bool dsn_rpc_register_handler_helper(dsn_task_code_t code, const char* name, int param);
-	EXPORT void marshall_int_msg_helper(int msg_int, char* request_content);
+	DSN_API bool dsn_register_app_role_helper(const char* type_name, const char* create, const char* start, dsn_app_destroy destroy);
+	DSN_API void dsn_run_helper(int argc, char** argv, bool sleep_after_init);
+	DSN_API void dsn_task_call_helper(dsn_task_t task, dsn_task_tracker_t tracker, int delay_milliseconds);
+	DSN_API dsn_task_t dsn_task_create_helper(dsn_task_code_t code, uint64_t param, int hash);
+	DSN_API dsn_task_t dsn_task_create_timer_helper(dsn_task_code_t code, uint64_t param, int hash, int interval_milliseconds);
+	DSN_API uint64_t dsn_address_build_helper(const char* host, int port);
+	DSN_API void dsn_rpc_call_helper(uint64_t addr, dsn_task_t rpc_call, dsn_task_tracker_t tracker);
+	DSN_API void* dsn_rpc_call_wait_helper(uint64_t addr, dsn_message_t msg, char *ss);
+	DSN_API dsn_task_t dsn_rpc_create_response_task_helper(dsn_message_t msg, uint64_t param, int reply_hash);
+	DSN_API dsn_message_t dsn_msg_create_request_helper(dsn_task_code_t code, int timeout_milliseconds, int request_hash);
+	DSN_API dsn_task_code_t dsn_task_code_register_helper(const char* name, int type, int pri, dsn_threadpool_code_t pool);
+	DSN_API void marshall_helper(dsn_message_t msg, char* request_content);
+	DSN_API bool dsn_rpc_register_handler_helper(dsn_task_code_t code, const char* name, uint64_t param);
+	DSN_API void marshall_int_msg_helper(int msg_int, char* request_content);
 };
 
 
@@ -234,7 +234,7 @@ static void task_handler(void *param)
 	gstate = PyGILState_Ensure();
 
 	PyObject* pArgs = PyTuple_New(1);
-	PyTuple_SetItem(pArgs, 0, Py_BuildValue("i", *(int*)&param));
+	PyTuple_SetItem(pArgs, 0, Py_BuildValue("k", *(uint64_t*)&param));
 	PyObject* pFunc = tls_get_handler_function("task_handler");
 	PyObject* pReturn = PyEval_CallObject(pFunc, pArgs);
 	
@@ -243,14 +243,14 @@ static void task_handler(void *param)
 	return;
 }
 
-dsn_task_t dsn_task_create_helper(dsn_task_code_t code, void* param, int hash)
+dsn_task_t dsn_task_create_helper(dsn_task_code_t code, uint64_t param, int hash)
 {
 	return dsn_task_create(code, task_handler, (void *)param, hash);
 }
 
-dsn_task_t dsn_task_create_timer_helper(dsn_task_code_t code, void* param, int hash, int interval_milliseconds)
+dsn_task_t dsn_task_create_timer_helper(dsn_task_code_t code, uint64_t param, int hash, int interval_milliseconds)
 {
-	return dsn_task_create_timer(code, task_handler, (void *)param, hash, interval_milliseconds);
+	return dsn_task_create_timer(code, task_handler, &param, hash, interval_milliseconds);
 }
 
 void dsn_task_call_helper(dsn_task_t task, dsn_task_tracker_t tracker, int delay_milliseconds)
@@ -281,7 +281,7 @@ static void rpc_response_handler(dsn_error_t err, dsn_message_t rpc_request, dsn
 
 	PyObject* pArgs = PyTuple_New(2);
 	PyTuple_SetItem(pArgs, 0, Py_BuildValue("s", buffer));
-	PyTuple_SetItem(pArgs, 1, Py_BuildValue("i", *(int*)&param));
+	PyTuple_SetItem(pArgs, 1, Py_BuildValue("k", *(uint64_t*)&param));
 	PyObject* pFunc = tls_get_handler_function("on_timer_handler");
 	PyObject* pReturn = PyEval_CallObject(pFunc, pArgs);
 
@@ -290,9 +290,9 @@ static void rpc_response_handler(dsn_error_t err, dsn_message_t rpc_request, dsn
 }
 
 // dsn_rpc_create_response_task(dsn_message_t request, dsn_rpc_response_handler_t cb, IntPtr param, int reply_hash);
-dsn_task_t dsn_rpc_create_response_task_helper(dsn_message_t msg, int param, int reply_hash)
+dsn_task_t dsn_rpc_create_response_task_helper(dsn_message_t msg, uint64_t param, int reply_hash)
 {
-	return dsn_rpc_create_response_task(msg, rpc_response_handler, (void *)(intptr_t)param, reply_hash);
+	return dsn_rpc_create_response_task(msg, rpc_response_handler, (void *)param, reply_hash);
 }
 
 // dsn_rpc_call(ref dsn_address_t server, dsn_task_t rpc_call, dsn_task_tracker_t tracker);
@@ -304,7 +304,7 @@ void dsn_rpc_call_helper(uint64_t addr, dsn_task_t rpc_call, dsn_task_tracker_t 
 void* dsn_rpc_call_wait_helper(uint64_t addr, dsn_message_t msg, char *ss)
 {
 	dsn_message_t resp = dsn_rpc_call_wait(*(dsn_address_t*)&addr, msg);
-
+	
 	void* ptr;
 	size_t size;
 	dsn_msg_read_next(resp, &ptr, &size);
@@ -326,7 +326,7 @@ void marshall_helper(dsn_message_t msg, char* request_content)
 
 void marshall_int_msg_helper(int msg_int, char* request_content)
 {
-	dsn_message_t msg = (dsn_message_t)(intptr_t)msg_int;
+	dsn_message_t msg = (dsn_message_t)&msg_int;
 
 	void* ptr;
 	size_t size;
@@ -354,8 +354,8 @@ static void rpc_request_handler(dsn_message_t rpc_request, void* param)
 
 	PyObject* pArgs = PyTuple_New(3);
 	PyTuple_SetItem(pArgs, 0, Py_BuildValue("s", buffer));
-	PyTuple_SetItem(pArgs, 1, Py_BuildValue("i", *(int*)&rpc_response));
-	PyTuple_SetItem(pArgs, 2, Py_BuildValue("i", *(int*)&param));
+	PyTuple_SetItem(pArgs, 1, Py_BuildValue("k", *(uint64_t*)&rpc_response));
+	PyTuple_SetItem(pArgs, 2, Py_BuildValue("k", *(uint64_t*)&param));
 	PyObject* pFunc = tls_get_handler_function("on_request_handler");
 	PyObject* pReturn = PyEval_CallObject(pFunc, pArgs);
 
@@ -364,7 +364,7 @@ static void rpc_request_handler(dsn_message_t rpc_request, void* param)
 }
 
 // bool dsn_rpc_register_handler(dsn_task_code_t code, const char* name, dsn_rpc_request_handler_t cb, void* param)
-bool dsn_rpc_register_handler_helper(dsn_task_code_t code, const char* name, int param)
+bool dsn_rpc_register_handler_helper(dsn_task_code_t code, const char* name, uint64_t param)
 {
-	return dsn_rpc_register_handler(code, name, rpc_request_handler, (void *)(intptr_t)param);
+	return dsn_rpc_register_handler(code, name, rpc_request_handler, (void *)param);
 }

@@ -2,5 +2,5 @@ from distutils.core import setup
 
 setup(name='Python_dev',
       description='Python development core',
-      packages=['dev.python'],
+      packages=['dev', 'dev.python'],
      )

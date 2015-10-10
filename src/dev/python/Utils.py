@@ -1,7 +1,7 @@
 __author__ = 'v-lshen'
 
-from .NativeCall import *
-from .InterOpLookupTable import *
+from NativeCall import *
+from InterOpLookupTable import *
 import time
 
 count_time = 0

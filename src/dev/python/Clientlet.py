@@ -1,7 +1,7 @@
 __author__ = 'v-lshen'
 
-from .Utils import *
-from .RpcStream import *
+from Utils import *
+from RpcStream import *
 
 
 class Clientlet:
@@ -18,7 +18,6 @@ class Clientlet:
             task = Native.dsn_task_create(evt, id(callback), hash)
         else:
             task = Native.dsn_task_create_timer(evt, id(callback), hash, timer_interval_milliseconds)
-
         Native.dsn_task_call(task, id(callback_owner), delay_milliseconds)
         return task
 

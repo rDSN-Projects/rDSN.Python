@@ -1,8 +1,12 @@
 __author__ = 'v-lshen'
 
-from .EchoCodeDefinition import *
-from .EchoServer import *
-from .EchoClient import *
+import sys
+import os
+import time
+
+from EchoCodeDefinition import *
+from EchoServer import *
+from EchoClient import *
 
 
 class EchoServiceClient(ServiceApp):
@@ -27,12 +31,13 @@ class EchoServiceClient(ServiceApp):
         self.__echo_client = None
 
     def timer(self):
+        time.sleep(1)
         rpc_stream = RpcStream()
         rpc_stream.write('f', 12.345678)
         rpc_stream.write('6s', b'ahaaaa')
         request_content = rpc_stream.get_content()
         # async pattern
-        self.__echo_client.echo_async(request_content)
+        #self.__echo_client.echo_async(request_content)
         # sync pattern
         print('sync_resp_data: ', self.__echo_client.echo_sync(request_content))
         return

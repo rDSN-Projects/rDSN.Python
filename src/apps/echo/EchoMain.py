@@ -1,7 +1,10 @@
 __author__ = 'v-lshen'
 
-from app_package.EchoAppExample import *
+import sys
+import os
 
+sys.path.append(os.getcwd() + '/app_package')
+from EchoAppExample import *
 
 def start():
     argv = (c_char_p*2)()

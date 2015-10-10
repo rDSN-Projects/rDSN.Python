@@ -1,7 +1,7 @@
 __author__ = 'v-lshen'
 
-from .EchoCodeDefinition import *
-from .EchoServer import *
+from EchoCodeDefinition import *
+from EchoServer import *
 from dev.python.Clientlet import *
 
 

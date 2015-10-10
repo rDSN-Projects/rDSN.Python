@@ -1,5 +1,8 @@
 __author__ = 'v-lshen'
 
+import sys
+import os
+
 from dev.python.ServiceApp import *
 
 THREAD_POOL_DEFAULT = ThreadPoolCode.threadpool_code_register('THREAD_POOL_DEFAULT')

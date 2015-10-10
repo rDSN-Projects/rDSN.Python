@@ -3,8 +3,11 @@ __author__ = 'v-lshen'
 from ctypes import *
 import os
 
-dll_core = CDLL(os.getcwd() + '\dsn.core.dll')
-dll_helper = CDLL(os.getcwd() + '\dsn.dev.python_helper.dll')
+#dll_core = CDLL(os.getcwd() + '\dsn.core.dll')
+#dll_helper = CDLL(os.getcwd() + '\dsn.dev.python_helper.dll')
+
+dll_core = CDLL(os.getcwd() + '/libdsn.core.so')
+dll_helper = CDLL(os.getcwd() + '/libdsn.dev.python_helper.so')
 
 dsn_task_type_t = {'TASK_TYPE_RPC_REQUEST':0, 'TASK_TYPE_RPC_RESPONSE':1, 'TASK_TYPE_COMPUTE':2, 'TASK_TYPE_AIO':3, 'TASK_TYPE_CONTINUATION':4, 'TASK_TYPE_COUNT':5, 'TASK_TYPE_INVALID':6}
 dsn_task_priority_t = {'TASK_PRIORITY_LOW':0, 'TASK_PRIORITY_COMMON':1, 'TASK_PRIORITY_HIGH':2, 'TASK_PRIORITY_COUNT':3, 'TASK_PRIORITY_INVALID':4}
@@ -25,7 +28,6 @@ class Native:
     DSN_MAX_BUFFER_COUNT_IN_MESSAGE = 64
     DSN_INVALID_HASH = 0 #not same
     DSN_MAX_APP_TYPE_NAME_LENGTH = 32
-    DSN_CORE_DLL = 'dsn.core.dll'
 
     @staticmethod
     def dsn_register_app_role(type_name, create, start, destroy):
@@ -41,6 +43,7 @@ class Native:
     '''
     @staticmethod
     def dsn_run(argc, argv, sleep_after_init): # void dsn_run(int argc, string[] argv, bool sleep_after_init)
+        dll_helper.dsn_run_helper.restype = c_void_p
         return dll_helper.dsn_run_helper(argc, argv, sleep_after_init)
 
     @staticmethod
@@ -50,66 +53,82 @@ class Native:
 
     @staticmethod
     def dsn_task_create(code, param, hash):
-        return dll_helper.dsn_task_create_helper(code, param, hash)
+        dll_helper.dsn_task_create_helper.restype = c_void_p
+        return dll_helper.dsn_task_create_helper(code, c_ulonglong(param), hash)
 
     @staticmethod
     def dsn_task_create_timer(code, param, hash, interval_milliseconds):
-        return dll_helper.dsn_task_create_timer_helper(code, param, hash, interval_milliseconds)
+        dll_helper.dsn_task_create_helper.restype = c_void_p
+        return dll_helper.dsn_task_create_timer_helper(code, c_ulonglong(param), hash, interval_milliseconds)
 
     @staticmethod
     def dsn_task_call(task, callback_owner, delay_milliseconds):
+        dll_helper.dsn_task_call_helper.restype = c_void_p
         return dll_helper.dsn_task_call_helper(c_void_p(task), c_void_p(callback_owner), delay_milliseconds)
 
     @staticmethod
     def dsn_rpc_call(addr, rpc_call, tracker):
+        dll_helper.dsn_rpc_call_helper.restype = c_void_p
         return dll_helper.dsn_rpc_call_helper(c_ulonglong(addr), c_void_p(rpc_call), c_void_p(tracker))
 
     @staticmethod
     def dsn_rpc_create_response_task(msg, param, reply_hash):
-        return dll_helper.dsn_rpc_create_response_task_helper(c_void_p(msg), param, reply_hash)
+        dll_helper.dsn_rpc_create_response_task_helper.restype = c_void_p
+        return dll_helper.dsn_rpc_create_response_task_helper(c_void_p(msg), c_ulonglong(param), reply_hash)
 
     @staticmethod
     def dsn_msg_create_request(code, timeout_milliseconds, request_hash):
+        dll_core.dsn_msg_create_request.restype = c_void_p
         return dll_core.dsn_msg_create_request(code, timeout_milliseconds, request_hash)
 
     @staticmethod
     def marshall(msg, request_content):
+        dll_helper.marshall_helper.restype = c_void_p
         return dll_helper.marshall_helper(c_void_p(msg), request_content)
 
     @staticmethod
     def dsn_task_code_register(name, type, pri, pool):
+        dll_core.dsn_task_code_register.restype = c_int
         return dll_core.dsn_task_code_register(name.encode(), type, pri, pool)
 
     @staticmethod
     def dsn_threadpool_code_register(name):
+        dll_core.dsn_threadpool_code_register.restype = c_int
         return dll_core.dsn_threadpool_code_register(name.encode())
 
     @staticmethod
     def dsn_rpc_register_handler(code, name, param):
-        return dll_helper.dsn_rpc_register_handler_helper(code, name.encode(), param)
+        #dll_helper.dsn_rpc_register_handler_helper.restype = c_bool
+        return dll_helper.dsn_rpc_register_handler_helper(code, name.encode(), c_ulonglong(param))
 
     @staticmethod
     def dsn_rpc_reply(response):
+        dll_core.dsn_rpc_reply.restype = c_void_p
         return dll_core.dsn_rpc_reply(c_void_p(response))
 
     @staticmethod
     def marshall_int_msg(msg, response_content):
+        dll_helper.marshall_int_msg_helper.restype = c_void_p
         return dll_helper.marshall_int_msg_helper(msg, response_content)
 
     @staticmethod
     def dsn_task_cancel(task, cleanup):
+        dll_core.dsn_task_cancel.restype = c_bool
         return dll_core.dsn_task_cancel(c_void_p(task), c_bool(cleanup))
 
     @staticmethod
     def dsn_rpc_call_wait(addr, request, ss):
-        return dll_helper.dsn_rpc_call_wait_helper(c_ulonglong(addr), request, c_char_p(ss))
+        dll_helper.dsn_rpc_call_wait_helper.restype = c_void_p
+        return dll_helper.dsn_rpc_call_wait_helper(c_ulonglong(addr), c_void_p(request), c_char_p(ss))
 
     @staticmethod
     def dsn_rpc_unregiser_handler(code):
+        dll_core.dsn_rpc_unregiser_handler.restype = c_void_p
         return dll_core.dsn_rpc_unregiser_handler(code)
 
     @staticmethod
     def dsn_error_register(err):
+        dll_core.dsn_error_register.restype = c_int
         return dll_core.dsn_error_register(err.encode())
 
 

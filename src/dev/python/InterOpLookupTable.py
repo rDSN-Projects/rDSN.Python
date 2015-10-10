@@ -20,3 +20,9 @@ class InterOpLookupTable:
     def task_handler(idx):
         idx_func = function_dict[idx]
         idx_func()
+
+    @staticmethod
+    def dict_release():
+        app_dict.clear()
+        object_dict.clear()
+        function_dict.clear()
