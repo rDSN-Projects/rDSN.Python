@@ -2,10 +2,10 @@ __author__ = 'v-lshen'
 
 from ctypes import *
 import os
-
+# for windows
 #dll_core = CDLL(os.getcwd() + '\dsn.core.dll')
 #dll_helper = CDLL(os.getcwd() + '\dsn.dev.python_helper.dll')
-
+# for linux
 dll_core = CDLL(os.getcwd() + '/libdsn.core.so')
 dll_helper = CDLL(os.getcwd() + '/libdsn.dev.python_helper.so')
 
@@ -23,12 +23,7 @@ dsn_task_tracker_t = CFUNCTYPE(c_void_p)
 
 
 class Native:
-    DSN_MAX_TASK_CODE_NAME_LENGTH = 48
-    DSN_MAX_ADDRESS_NAME_LENGTH = 16
-    DSN_MAX_BUFFER_COUNT_IN_MESSAGE = 64
-    DSN_INVALID_HASH = 0 #not same
-    DSN_MAX_APP_TYPE_NAME_LENGTH = 32
-
+    
     @staticmethod
     def dsn_register_app_role(type_name, create, start, destroy):
         return dll_helper.dsn_register_app_role_helper(type_name.encode(), create.encode(), start.encode(), dsn_app_destroy(destroy))
@@ -98,7 +93,7 @@ class Native:
 
     @staticmethod
     def dsn_rpc_register_handler(code, name, param):
-        #dll_helper.dsn_rpc_register_handler_helper.restype = c_bool
+        dll_helper.dsn_rpc_register_handler_helper.restype = c_bool
         return dll_helper.dsn_rpc_register_handler_helper(code, name.encode(), c_ulonglong(param))
 
     @staticmethod
