@@ -9,13 +9,6 @@
 //# undef _DEBUG
 # include "Python.h"
 
-//# if defined(_WIN32)
-//# define DSN_API __declspec(dllexport)
-
-//# elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
-//# define DSN_API __attribute__((visibility("default")))
-//# endif
-
 typedef int         dsn_error_t;
 // rDSN allows many apps in the same process for easy deployment and test
 // app ceate, start, and destroy callbacks
