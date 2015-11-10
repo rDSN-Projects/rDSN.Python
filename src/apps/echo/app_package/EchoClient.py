@@ -1,4 +1,4 @@
-__author__ = 'v-lshen'
+﻿__author__ = 'v-lshen'
 
 from EchoCodeDefinition import *
 from EchoServer import *
@@ -25,8 +25,7 @@ class EchoClient:
         Clientlet.rpc_call_async(RPC_ECHO, self.get_server().get_addr(), request_content, self, self.on_timer_echo_callback, 0)
         return
 
-    @staticmethod
-    def on_timer_echo_callback(rpc_response):
+    def on_timer_echo_callback(self, err, rpc_response):
         # client receive echo response
         unpacked_data = RpcStream.read('7s9sii', rpc_response)
         global count_time
@@ -47,4 +46,4 @@ class EchoClient:
         next_addr = RpcAddress()
         addr = Clientlet.build_address('localhost', 8101)
         next_addr.set_addr(addr)
-        Clientlet.rpc_call_async(RPC_ECHO, next_addr.get_addr(), request_content, EchoClient, EchoClient.on_timer_echo_callback, 0)
+        Clientlet.rpc_call_async(RPC_ECHO, next_addr.get_addr(), request_content, self, self.on_timer_echo_callback, 0)

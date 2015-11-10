@@ -127,15 +127,23 @@ static void app_destroy(void* app, bool cleanup)
 	return;
 }
 
+enum callback_type
+{
+    CT_RPC_REQUEST = 0,
+    CT_RPC_RESPONSE,
+    CT_TIMER,
+    CT_COMPUTE,
+
+    CT_COUNT
+};
 static __thread struct __tls_handler_function__
 {
 	int magic;
-	PyObject *rpc_request_function;
-	PyObject *timer_function;
-	PyObject *task_function;
+    PyObject* callbacks[CT_COUNT];
 } tls_handler_function;
 
-PyObject* tls_get_handler_function(std::string handler_name)
+
+PyObject* tls_get_handler_function(callback_type ct)
 {
 	if (tls_handler_function.magic != 0xdeadbeef)
 	{
@@ -144,50 +152,25 @@ PyObject* tls_get_handler_function(std::string handler_name)
 		PyGILState_STATE gstate;
 		gstate = PyGILState_Ensure();
 		
-		// on_request_handler
-		PyObject* pFunc1 = NULL;
-		PyObject* pModule1 = NULL;
-		PyObject* pDict1 = NULL;
-		PyObject* pClass1 = NULL;
-		pModule1 = PyImport_ImportModule("dev.python.InterOpLookupTable");
-		pDict1 = PyModule_GetDict(pModule1);
-		pClass1 = PyDict_GetItemString(pDict1, "InterOpLookupTable");
-		pFunc1 = PyObject_GetAttrString(pClass1, "on_request_handler");
-		tls_handler_function.rpc_request_function = pFunc1;
+        // find callback lookup table
+        PyObject* pModule1 = PyImport_ImportModule("dev.python.InterOpLookupTable");
+        PyObject* pDict1 = PyModule_GetDict(pModule1);
+        PyObject* pClass1 = PyDict_GetItemString(pDict1, "InterOpLookupTable");
 
-		// on_timer_handler
-		PyObject* pFunc2 = NULL;
-		PyObject* pModule2 = NULL;
-		PyObject* pDict2 = NULL;
-		PyObject* pClass2 = NULL;
-		pModule2 = PyImport_ImportModule("dev.python.InterOpLookupTable");
-		pDict2 = PyModule_GetDict(pModule2);
-		pClass2 = PyDict_GetItemString(pDict2, "InterOpLookupTable");
-		pFunc2 = PyObject_GetAttrString(pClass2, "on_timer_handler");
-		tls_handler_function.timer_function = pFunc2;
-		
-		// task_handler
-		PyObject* pFunc3 = NULL;
-		PyObject* pModule3 = NULL;
-		PyObject* pDict3 = NULL;
-		PyObject* pClass3 = NULL;
-		pModule3 = PyImport_ImportModule("dev.python.InterOpLookupTable");
-		pDict3 = PyModule_GetDict(pModule3);
-		pClass3 = PyDict_GetItemString(pDict3, "InterOpLookupTable");
-		pFunc3 = PyObject_GetAttrString(pClass3, "task_handler");
-		tls_handler_function.task_function = pFunc3;
+        // find general callback functions
+        tls_handler_function.callbacks[CT_RPC_REQUEST] =
+            PyObject_GetAttrString(pClass1, "on_request_handler");
+        tls_handler_function.callbacks[CT_RPC_RESPONSE] =
+            PyObject_GetAttrString(pClass1, "on_response_handler");
+        tls_handler_function.callbacks[CT_TIMER] =
+            PyObject_GetAttrString(pClass1, "task_handler");
+        tls_handler_function.callbacks[CT_COMPUTE] =
+            PyObject_GetAttrString(pClass1, "timer_handler");
 
 		PyGILState_Release(gstate);
 	}
-	if (handler_name == "on_request_handler")
-		return tls_handler_function.rpc_request_function;
-	else if (handler_name == "on_timer_handler")
-		return tls_handler_function.timer_function;
-	else if (handler_name == "task_handler")
-		return tls_handler_function.task_function;
-	else
-		perror("handler function not found");
-	return nullptr;
+
+    return tls_handler_function.callbacks[ct];
 }
 
 DSN_PY_API void dsn_run_helper(int argc, char** argv, bool sleep_after_init)
@@ -208,8 +191,8 @@ static void task_handler(void *param)
 	gstate = PyGILState_Ensure();
 
 	PyObject* pArgs = PyTuple_New(1);
-	PyTuple_SetItem(pArgs, 0, Py_BuildValue("k", *(uint64_t*)&param));
-	PyObject* pFunc = tls_get_handler_function("task_handler");
+    PyTuple_SetItem(pArgs, 0, Py_BuildValue("k", (uint64_t)(uintptr_t)param));
+	PyObject* pFunc = tls_get_handler_function(CT_COMPUTE);
 	PyObject* pReturn = PyEval_CallObject(pFunc, pArgs);
 	
 	PyGILState_Release(gstate);
@@ -217,19 +200,36 @@ static void task_handler(void *param)
 	return;
 }
 
+static void timer_handler(void *param)
+{
+    // task handler start
+    // acquire Python's Global Interpreter Lock (GIL) before calling any Python API functions
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+
+    PyObject* pArgs = PyTuple_New(1);
+    PyTuple_SetItem(pArgs, 0, Py_BuildValue("k", (uint64_t)(uintptr_t)param));
+    PyObject* pFunc = tls_get_handler_function(CT_TIMER);
+    PyObject* pReturn = PyEval_CallObject(pFunc, pArgs);
+
+    PyGILState_Release(gstate);
+    // task handler end
+    return;
+}
+
 DSN_PY_API dsn_task_t dsn_task_create_helper(dsn_task_code_t code, uint64_t param, int hash, dsn_task_tracker_t tracker)
 {
-	return dsn_task_create(code, task_handler, (void *)param, hash, tracker);
+    return dsn_task_create(code, task_handler, (void *)(uintptr_t)param, hash, nullptr); // set tracker null
 }
 
 DSN_PY_API dsn_task_t dsn_task_create_timer_helper(dsn_task_code_t code, uint64_t param, int hash, int interval_milliseconds, dsn_task_tracker_t tracker)
 {
-	return dsn_task_create_timer(code, task_handler, &param, hash, interval_milliseconds, tracker);
+    return dsn_task_create_timer(code, timer_handler, (void*)(uintptr_t)param, hash, interval_milliseconds, nullptr); // set tracker null
 }
 
 DSN_PY_API void dsn_task_call_helper(dsn_task_t task, int delay_milliseconds)
 {
-	return dsn_task_call(task, delay_milliseconds); // set tracker null
+	return dsn_task_call(task, delay_milliseconds);
 }
 
 // rpc helper
@@ -253,26 +253,25 @@ static void rpc_response_handler(dsn_error_t err, dsn_message_t rpc_request, dsn
 	memcpy(buffer, ptr, size);
 	dsn_msg_read_commit(rpc_response, size);
 
-	PyObject* pArgs = PyTuple_New(2);
+	PyObject* pArgs = PyTuple_New(3);
 	PyTuple_SetItem(pArgs, 0, Py_BuildValue("s", buffer));
-	PyTuple_SetItem(pArgs, 1, Py_BuildValue("k", *(uint64_t*)&param));
-	PyObject* pFunc = tls_get_handler_function("on_timer_handler");
+    PyTuple_SetItem(pArgs, 1, Py_BuildValue("k", err));
+	PyTuple_SetItem(pArgs, 2, Py_BuildValue("k", (uint64_t)(uintptr_t)param));
+    PyObject* pFunc = tls_get_handler_function(CT_RPC_RESPONSE);
 	PyObject* pReturn = PyEval_CallObject(pFunc, pArgs);
 
 	PyGILState_Release(gstate);
 	return;
 }
 
-// dsn_rpc_create_response_task(dsn_message_t request, dsn_rpc_response_handler_t cb, IntPtr param, int reply_hash);
 DSN_PY_API dsn_task_t dsn_rpc_create_response_task_helper(dsn_message_t msg, uint64_t param, int reply_hash, dsn_task_tracker_t tracker)
 {
-	return dsn_rpc_create_response_task(msg, rpc_response_handler, (void *)param, reply_hash, tracker);
+	return dsn_rpc_create_response_task(msg, rpc_response_handler, (void *)param, reply_hash, nullptr); // set tracker null
 }
 
-// dsn_rpc_call(ref dsn_address_t server, dsn_task_t rpc_call, dsn_task_tracker_t tracker);
 DSN_PY_API void dsn_rpc_call_helper(uint64_t addr, dsn_task_t rpc_call)
 {
-	dsn_rpc_call(*(dsn_address_t*)&addr, rpc_call); // set tracker null
+	dsn_rpc_call(*(dsn_address_t*)&addr, rpc_call);
 }
 
 DSN_PY_API void* dsn_rpc_call_wait_helper(uint64_t addr, dsn_message_t msg, char *ss)
@@ -328,9 +327,9 @@ static void rpc_request_handler(dsn_message_t rpc_request, void* param)
 
 	PyObject* pArgs = PyTuple_New(3);
 	PyTuple_SetItem(pArgs, 0, Py_BuildValue("s", buffer));
-	PyTuple_SetItem(pArgs, 1, Py_BuildValue("k", *(uint64_t*)&rpc_response));
-	PyTuple_SetItem(pArgs, 2, Py_BuildValue("k", *(uint64_t*)&param));
-	PyObject* pFunc = tls_get_handler_function("on_request_handler");
+    PyTuple_SetItem(pArgs, 1, Py_BuildValue("k", (uint64_t)(uintptr_t)rpc_response));
+	PyTuple_SetItem(pArgs, 2, Py_BuildValue("k", (uint64_t)(uintptr_t)param));
+	PyObject* pFunc = tls_get_handler_function(CT_RPC_REQUEST);
 	PyObject* pReturn = PyEval_CallObject(pFunc, pArgs);
 
 	PyGILState_Release(gstate);
