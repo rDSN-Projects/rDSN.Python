@@ -63,29 +63,29 @@ class Native:
         return dll_helper.dsn_address_build_helper(host.encode(), port)
 
     @staticmethod
-    def dsn_task_create(code, param, hash):
+    def dsn_task_create(code, param, hash, tracker):
         dll_helper.dsn_task_create_helper.restype = c_void_p
-        return dll_helper.dsn_task_create_helper(code, c_ulonglong(param), hash)
+        return dll_helper.dsn_task_create_helper(code, c_ulonglong(param), hash, c_void_p(tracker))
 
     @staticmethod
-    def dsn_task_create_timer(code, param, hash, interval_milliseconds):
+    def dsn_task_create_timer(code, param, hash, interval_milliseconds, tracker):
         dll_helper.dsn_task_create_helper.restype = c_void_p
-        return dll_helper.dsn_task_create_timer_helper(code, c_ulonglong(param), hash, interval_milliseconds)
+        return dll_helper.dsn_task_create_timer_helper(code, c_ulonglong(param), hash, interval_milliseconds, c_void_p(tracker))
 
     @staticmethod
-    def dsn_task_call(task, callback_owner, delay_milliseconds):
+    def dsn_task_call(task, delay_milliseconds):
         dll_helper.dsn_task_call_helper.restype = c_void_p
-        return dll_helper.dsn_task_call_helper(c_void_p(task), c_void_p(callback_owner), delay_milliseconds)
+        return dll_helper.dsn_task_call_helper(c_void_p(task), delay_milliseconds)
 
     @staticmethod
-    def dsn_rpc_call(addr, rpc_call, tracker):
+    def dsn_rpc_call(addr, rpc_call):
         dll_helper.dsn_rpc_call_helper.restype = c_void_p
-        return dll_helper.dsn_rpc_call_helper(c_ulonglong(addr), c_void_p(rpc_call), c_void_p(tracker))
+        return dll_helper.dsn_rpc_call_helper(c_ulonglong(addr), c_void_p(rpc_call))
 
     @staticmethod
-    def dsn_rpc_create_response_task(msg, param, reply_hash):
+    def dsn_rpc_create_response_task(msg, param, reply_hash, tracker):
         dll_helper.dsn_rpc_create_response_task_helper.restype = c_void_p
-        return dll_helper.dsn_rpc_create_response_task_helper(c_void_p(msg), c_ulonglong(param), reply_hash)
+        return dll_helper.dsn_rpc_create_response_task_helper(c_void_p(msg), c_ulonglong(param), reply_hash, c_void_p(tracker))
 
     @staticmethod
     def dsn_msg_create_request(code, timeout_milliseconds, request_hash):

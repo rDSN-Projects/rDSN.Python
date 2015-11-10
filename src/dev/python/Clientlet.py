@@ -15,10 +15,10 @@ class Clientlet:
         global function_dict
         function_dict[id(callback)] = callback
         if(timer_interval_milliseconds == 0):
-            task = Native.dsn_task_create(evt, id(callback), hash)
+            task = Native.dsn_task_create(evt, id(callback), hash, id(callback_owner))
         else:
-            task = Native.dsn_task_create_timer(evt, id(callback), hash, timer_interval_milliseconds)
-        Native.dsn_task_call(task, id(callback_owner), delay_milliseconds)
+            task = Native.dsn_task_create_timer(evt, id(callback), hash, timer_interval_milliseconds, id(callback_owner))
+        Native.dsn_task_call(task, delay_milliseconds)
         return task
 
     @staticmethod
@@ -29,8 +29,8 @@ class Clientlet:
 
         Native.marshall(msg, request)
 
-        task = Native.dsn_rpc_create_response_task(msg, id(callback), reply_hash)
-        Native.dsn_rpc_call(server, task, id(callback_owner))
+        task = Native.dsn_rpc_create_response_task(msg, id(callback), reply_hash, id(callback_owner))
+        Native.dsn_rpc_call(server, task)
 
     @staticmethod
     def rpc_call_sync(code, server, request, ss):
