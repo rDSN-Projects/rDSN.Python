@@ -1,0 +1,28 @@
+09:08:19.151 (1447060099151116900 15b8) unknown.io-thrd.05560: nfs not started coz [core] start_nfs = false
+09:08:19.151 (1447060099151116900 15b8) unknown.io-thrd.05560: [client] network client started at port 1, channel = RPC_CHANNEL_TCP, fmt = NET_HDR_DSN ...
+09:08:19.151 (1447060099151116900 15b8) unknown.io-thrd.05560: [client] network client started at port 1, channel = RPC_CHANNEL_UDP, fmt = NET_HDR_DSN ...
+09:08:19.151 (1447060099151116900 15b8) unknown.io-thrd.05560: === service_node=[client], primary_address=[10.172.96.42:1] ===
+09:08:19.166 (1447060099166761200 15b8) unknown.io-thrd.05560: nfs not started coz [core] start_nfs = false
+09:08:19.166 (1447060099166761200 15b8) unknown.io-thrd.05560: [server] network client started at port 2, channel = RPC_CHANNEL_TCP, fmt = NET_HDR_DSN ...
+09:08:19.166 (1447060099166761200 15b8) unknown.io-thrd.05560: [server] network client started at port 2, channel = RPC_CHANNEL_UDP, fmt = NET_HDR_DSN ...
+09:08:19.166 (1447060099166761200 15b8) unknown.io-thrd.05560: [server] network server started at port 8101, channel = RPC_CHANNEL_TCP, fmt = NET_HDR_DSN ...
+09:08:19.166 (1447060099166761200 15b8) unknown.io-thrd.05560: [server] network server started at port 8103, channel = RPC_CHANNEL_TCP, fmt = NET_HDR_DSN ...
+09:08:19.166 (1447060099166761200 15b8) unknown.io-thrd.05560: === service_node=[server], primary_address=[10.172.96.42:8101] ===
+09:08:19.182 (1447060099182406500 15b8) unknown.io-thrd.05560: LPC_CONTROL_SERVICE_APP ENQUEUE, task_id = 000015b800000001, delay = 0 ms
+09:08:19.182 (1447060099182406500 15b8) unknown.io-thrd.05560: LPC_CONTROL_SERVICE_APP ENQUEUE, task_id = 000015b800000002, delay = 0 ms
+09:08:19.182 (1447060099182406500 4b60) client.default0.000015b800000001: LPC_CONTROL_SERVICE_APP EXEC BEGIN, task_id = 000015b800000001
+09:08:19.182 (1447060099182406500 31f0) server.default0.000015b800000002: LPC_CONTROL_SERVICE_APP EXEC BEGIN, task_id = 000015b800000002
+09:08:19.182 (1447060099182406500 31f0) server.default0.000015b800000002: LPC_CONTROL_SERVICE_APP EXEC END, task_id = 000015b800000002, err = ERR_OK
+09:08:19.182 (1447060099182406500 4b60) client.default0.000015b800000001: LPC_ECHO_TIMER2 ENQUEUE, task_id = 0101000000000001, delay = 0 ms
+09:08:19.182 (1447060099182406500 4b60) client.default0.000015b800000001: LPC_CONTROL_SERVICE_APP EXEC END, task_id = 000015b800000001, err = ERR_OK
+09:08:19.182 (1447060099182406500 4b60) client.default0.0101000000000001: LPC_ECHO_TIMER2 EXEC BEGIN, task_id = 0101000000000001
+09:08:20.198 (1447060100198054100 4b60) client.default0.0101000000000001: RPC_ECHO RPC.CALL: 10.172.96.42:1 => 127.0.0.1:8101, rpc_id = d905d03f47dc9f3c, callback_task = 0101000000000002, timeout = 5000 ms
+09:08:20.198 (1447060100198054100 4b60) client.default0.0101000000000001: client session connected to 127.0.0.1:8101
+09:08:20.198 (1447060100198054100 4b60) client.default0.0101000000000001: dsn::rpc_session::send_message: rpc_id = d905d03f47dc9f3c, code = RPC_ECHO
+09:08:20.198 (1447060100198054100 4b60) client.default0.0101000000000001: server session 10.172.96.42:1 accepted (1 in total)
+09:08:20.198 (1447060100198054100 4b60) server.io-thrd.19296: dsn::rpc_session::on_recv_request: rpc_id = d905d03f47dc9f3c, code = RPC_ECHO
+09:08:20.198 (1447060100198054100 4b60) server.io-thrd.19296: RPC_ECHO RPC.REQUEST.ENQUEUE (0x00000000039157B0), task_id = 02004b6000000001, 10.172.96.42:1 => 10.172.96.42:8101, rpc_id = d905d03f47dc9f3c
+09:08:20.198 (1447060100198054100 31f0) server.default0.02004b6000000001: RPC_ECHO EXEC BEGIN, task_id = 02004b6000000001, 10.172.96.42:1 => 10.172.96.42:8101, rpc_id = d905d03f47dc9f3c
+09:08:20.198 (1447060100198054100 31f0) server.default0.02004b6000000001: RPC_ECHO_ACK RPC.REPLY: 10.172.96.42:8101 => 10.172.96.42:1, rpc_id = d905d03f47dc9f3c
+09:08:20.198 (1447060100198054100 31f0) server.default0.02004b6000000001: dsn::rpc_session::send_message: rpc_id = d905d03f47dc9f3c, code = RPC_ECHO_ACK
+09:08:20.198 (1447060100198054100 31f0) client.io-thrd.12784: dsn::rpc_session::on_recv_reply: rpc_id = d905d03f47dc9f3c, code = R
