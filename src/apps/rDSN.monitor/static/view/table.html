@@ -1,0 +1,43 @@
+{% extends "static/view/template.html" %}
+{% block body %}
+<link href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css" rel="stylesheet">
+
+<table id="table" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Task Type</th>
+                <th>Percent</th>
+                <th>Queue Time(ns)</th>
+                <th>Exec Time(ns)</th>
+                <th>Throughput(#/s)</th>
+                <th>Cancelled(#)</th>
+                <th>Aio Latency(ns)</th>
+                <th>RPC Server Latency(ns)</th>
+                <th>RPC Client Latency(ns)</th>
+                <th>Timeout(#/s)</th>
+            </tr>
+        </thead>
+ 
+        <tbody>
+	{% for row in TABLE %}
+	<tr>
+	{% for data in row %}
+	<td>{{data}}</td>
+	{% endfor %}
+	</tr>
+	{% endfor %}
+
+	
+
+        </tbody>
+    </table>
+
+
+    
+<script>
+$(document).ready(function() {
+    $('#table').DataTable();
+} );
+
+</script>
+{% endblock %}
