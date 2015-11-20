@@ -29,9 +29,11 @@ pip install WebOb
 pip install Paste
 
 pip install webapp2
+
+pip install jinja2
 ```
 
-Then run command：
+Then run command
 ```bash
 cd .\rDSN.monitor
 python server.py
