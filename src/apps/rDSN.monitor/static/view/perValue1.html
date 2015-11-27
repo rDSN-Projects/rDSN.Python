@@ -1,13 +1,13 @@
 {% extends "static/view/template.html" %}
 {% block body %}
-{% include "static/view/related.html" %}
+{% include "static/view/head.html" %}
 <div id="chart"></div>
 <script>
 var chart = c3.generate({
     data: {
         xs: {
 	{% for item in XTITLES %}
-	{{item}}:"x",
+	"{{item}}":"x",
 	{% endfor %}
         },
         // iris data from R
@@ -17,7 +17,15 @@ var chart = c3.generate({
 	[{% for item in row %}{% if item==row[0] %} "{{item}}",{% else %}{{item}},{% endif %}{% endfor %}],
 	{% endfor %}
         ],
-        type: 'scatter'
+        type: 'scatter',
+	colors: {
+            "QUEUE(ns)@server": '#B22222',
+            "EXEC(ns)@server": '#FF8C00',
+            "RPC.SERVER(ns)@server": '#FFD700',
+            "QUEUE(ns)@client": '#191970',
+            "EXEC(ns)@client": '#006400',
+            "RPC.CLIENT(ns)@client": '#008B8B',
+        },
     },
     subchart: {
         show: true
@@ -35,4 +43,6 @@ var chart = c3.generate({
     }
 });
 </script>
+
+{% include "static/view/tail.html" %}
 {% endblock %}

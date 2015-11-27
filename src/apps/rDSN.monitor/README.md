@@ -23,6 +23,13 @@ After you properly generated required dlls (dsn.core.dll,dsn.dev.python_helper.d
 
 Before the next step, noticing that comparing to rDSN.Python, there are some other packages needed for hosting the http server.
 
+You could run:
+```bash
+cd .\rDSN.monitor
+pip install -r requirement.txt
+```
+
+or manually install all of them:
 ```bash
 pip install WebOb
 
@@ -33,12 +40,19 @@ pip install webapp2
 pip install jinja2
 ```
 
+##Build dynamic link libraries
+Take "simple_kv" as an example.
+
+1.build dsn.replication.simple_kv.module in rDSN, we get dsn.replication.simple_kv.module.dll, put it under rDSN.monitor directory.
+2.modify config.ini, set "dmodule" param for each app.
+
+##Launch target program and http server
 Then run command
 ```bash
 cd .\rDSN.monitor
 python server.py
 ```
-The Python script will start a thread to run the rDSN-based demo "echo" and a thread to host the http server.
+The Python script will start a thread to run simple_kv and a thread to host the http server.
 
 Now you could visit [here](http://localhost:8080).
 
