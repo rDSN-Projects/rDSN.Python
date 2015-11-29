@@ -1,6 +1,6 @@
 {% extends "static/view/template.html" %}
 {% block body %}
-{% include "static/view/related.html" %}
+{% include "static/view/head.html" %}
 <div id="chart"></div>
 <script>
 var chart = c3.generate({
@@ -10,7 +10,7 @@ var chart = c3.generate({
     },
     data: {
         columns: [
-	['net(call)' {% for data in TABLEDATA.nc %},{{data}}{% endfor %}],
+	    ['net(call)' {% for data in TABLEDATA.nc %},{{data}}{% endfor %}],
             ['queue(server)' {% for data in TABLEDATA.qs %},{{data}}{% endfor %}],
             ['exec(server)' {% for data in TABLEDATA.es %},{{data}}{% endfor %}],
             ['net(reply)' {% for data in TABLEDATA.nr %},{{data}}{% endfor %}],
@@ -19,11 +19,18 @@ var chart = c3.generate({
             ['aio' {% for data in TABLEDATA.a %},{{data}}{% endfor %}],
         ],
         type: 'bar',
-	    {% if IFCOMPARE=='yes'%}
+	colors: {
+            "net(call)": '#F08080',
+            "queue(server)": '#B22222',
+            "exec(server)": '#FF8C00',
+            "net(reply)": '#4682B4',
+            "queue(client)": '#191970',
+            "exec(client)": '#006400',
+            "aio": '#00FF00',
+        },
         groups: [
             ['net(call)', 'queue(server)','exec(server)','net(reply)','queue(client)','exec(client)']
         ]
-	    {% endif %}
     },
     grid: {
         y: {
@@ -52,4 +59,5 @@ categories: ['{{TASK_CODE}}' {% if IFCOMPARE=='yes'%}{% for item in COMPARE_LIST
 	}
 });
 </script>
+{% include "static/view/tail.html" %}
 {% endblock %}
