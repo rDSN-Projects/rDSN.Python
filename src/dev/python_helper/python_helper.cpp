@@ -1,7 +1,7 @@
 // python_helper.cpp : Defines the entry point for the console application.
 //
 
-# include <dsn/service_api_c.h>
+# include <dsn/service_api_cpp.h>
 # include <dsn/ports.h>
 # include <iostream>
 # include <string.h>
@@ -348,4 +348,21 @@ DSN_PY_API PyObject* dsn_cli_run_helper(const char* command_line)
 	PyObject* res = Py_BuildValue("s", dsn_cli_run(command_line));
 	dsn_cli_free(str);
 	return res;
+}
+
+DSN_PY_API dsn_error_t dsn_app_bridge(int argc, const char** argv)
+{
+    if (argc != 1)
+    {
+        derror("python_helper: we don't support passing parameters to python scripts so far");
+        return dsn::ERR_INVALID_PARAMETERS;
+    }
+
+    new std::thread([=](){
+        Py_Initialize();
+        PyRun_SimpleFile(nullptr, argv[0]);
+        Py_Finalize();
+    });
+
+    return dsn::ERR_OK;
 }
