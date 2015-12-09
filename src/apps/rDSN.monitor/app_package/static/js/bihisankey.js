@@ -500,30 +500,18 @@ d3.biHiSankey = function () {
       node.rightLinks.forEach(function (link) {
         if (link.direction > 0) {
           link.sourceY = rightY;
-          if (link.target.state === "collapsed") {
-            rightY += link.thickness + linkSpacing;
-          }
         }
         else {
           link.targetY = rightY;
-          if (link.source.state === "collapsed") {
-            rightY += link.thickness + linkSpacing;
-          }
         }
       });
 
       node.leftLinks.forEach(function (link) {
         if (link.direction < 0) {
           link.sourceY = leftY;
-          if (link.target.state === "collapsed") {
-            leftY += link.thickness + linkSpacing;
-          }
         }
         else {
           link.targetY = leftY;
-          if (link.source.state === "collapsed") {
-            leftY += link.thickness + linkSpacing;
-          }
         }
       });
 

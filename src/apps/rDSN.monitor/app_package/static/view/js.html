@@ -244,7 +244,7 @@ function update () {
 
   link.transition()
     .duration(TRANSITION_DURATION)
-    .style("stroke-WIDTH", function (d) { return Math.max(1, d.thickness); })
+    .style("stroke-WIDTH", function (d) { return Math.max(10, d.thickness); })
     .attr("d", path)
     .style("opacity", OPACITY.LINK_DEFAULT);
 
