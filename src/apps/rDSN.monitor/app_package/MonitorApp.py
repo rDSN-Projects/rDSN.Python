@@ -272,7 +272,7 @@ class configureHandler(BaseHandler):
 class selectDisplayHandler(BaseHandler):
     def get(self):
         params = {}
-        queryRes = ast.literal_eval(Native.dsn_cli_run('pq list_counter'))
+        queryRes = ast.literal_eval(Native.dsn_cli_run('list_counter'))
         params['COUNTER_LIST'] = queryRes 
         self.render_template('selectDisplay.html',params)
 
@@ -285,7 +285,7 @@ class selectDisplayHandler(BaseHandler):
                 queryRes += ','
             else:
                 first_flag = 1
-            res = Native.dsn_cli_run('pq query_counter '+counter_list[counter])
+            res = Native.dsn_cli_run('query_counter '+counter_list[counter])
             if res=='':
                 res=0
             queryRes += res
