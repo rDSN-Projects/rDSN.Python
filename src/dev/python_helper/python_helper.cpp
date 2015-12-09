@@ -57,7 +57,7 @@ static void* app_create(const char* tname)
 	pReturn = PyEval_CallObject(pFunc, pArgs);
 
 	uint64_t result;
-	PyArg_Parse(pReturn, "k", &result);
+	PyArg_Parse(pReturn, "K", &result);
 
 	PyGILState_Release(gstate);
 	return (void*)(uint64_t)result;
@@ -82,7 +82,7 @@ static dsn_error_t app_start(void* app, int argc, char** argv)
 	pFunc = PyObject_GetAttrString(pClass, "app_start");
 
 	pArgs = PyTuple_New(3);
-	PyTuple_SetItem(pArgs, 0, Py_BuildValue("k", *(uint64_t*)&app));
+	PyTuple_SetItem(pArgs, 0, Py_BuildValue("K", *(uint64_t*)&app));
 	PyTuple_SetItem(pArgs, 1, Py_BuildValue("i", argc));
 	PyObject* pList = PyList_New(argc);
 	for (int i = 0; i < argc; i++)
@@ -118,7 +118,7 @@ static void app_destroy(void* app, bool cleanup)
 	pFunc = PyObject_GetAttrString(pClass, "app_destroy");
 
 	pArgs = PyTuple_New(2);
-	PyTuple_SetItem(pArgs, 0, Py_BuildValue("k", *(uint64_t*)&app));
+	PyTuple_SetItem(pArgs, 0, Py_BuildValue("K", *(uint64_t*)&app));
 	PyTuple_SetItem(pArgs, 1, Py_BuildValue("i", *(int*)&cleanup));
 
 	pReturn = PyEval_CallObject(pFunc, pArgs);
@@ -191,7 +191,7 @@ static void task_handler(void *param)
 	gstate = PyGILState_Ensure();
 
 	PyObject* pArgs = PyTuple_New(1);
-    PyTuple_SetItem(pArgs, 0, Py_BuildValue("k", (uint64_t)(uintptr_t)param));
+    PyTuple_SetItem(pArgs, 0, Py_BuildValue("K", (uint64_t)(uintptr_t)param));
 	PyObject* pFunc = tls_get_handler_function(CT_COMPUTE);
 	PyObject* pReturn = PyEval_CallObject(pFunc, pArgs);
 	
@@ -208,7 +208,7 @@ static void timer_handler(void *param)
     gstate = PyGILState_Ensure();
 
     PyObject* pArgs = PyTuple_New(1);
-    PyTuple_SetItem(pArgs, 0, Py_BuildValue("k", (uint64_t)(uintptr_t)param));
+    PyTuple_SetItem(pArgs, 0, Py_BuildValue("K", (uint64_t)(uintptr_t)param));
     PyObject* pFunc = tls_get_handler_function(CT_TIMER);
     PyObject* pReturn = PyEval_CallObject(pFunc, pArgs);
 
@@ -255,8 +255,8 @@ static void rpc_response_handler(dsn_error_t err, dsn_message_t rpc_request, dsn
 
 	PyObject* pArgs = PyTuple_New(3);
 	PyTuple_SetItem(pArgs, 0, Py_BuildValue("s", buffer));
-    PyTuple_SetItem(pArgs, 1, Py_BuildValue("k", err));
-	PyTuple_SetItem(pArgs, 2, Py_BuildValue("k", (uint64_t)(uintptr_t)param));
+    PyTuple_SetItem(pArgs, 1, Py_BuildValue("i", err));
+	PyTuple_SetItem(pArgs, 2, Py_BuildValue("K", (uint64_t)(uintptr_t)param));
     PyObject* pFunc = tls_get_handler_function(CT_RPC_RESPONSE);
 	PyObject* pReturn = PyEval_CallObject(pFunc, pArgs);
 
@@ -327,8 +327,8 @@ static void rpc_request_handler(dsn_message_t rpc_request, void* param)
 
 	PyObject* pArgs = PyTuple_New(3);
 	PyTuple_SetItem(pArgs, 0, Py_BuildValue("s", buffer));
-    PyTuple_SetItem(pArgs, 1, Py_BuildValue("k", (uint64_t)(uintptr_t)rpc_response));
-	PyTuple_SetItem(pArgs, 2, Py_BuildValue("k", (uint64_t)(uintptr_t)param));
+    PyTuple_SetItem(pArgs, 1, Py_BuildValue("K", (uint64_t)(uintptr_t)rpc_response));
+	PyTuple_SetItem(pArgs, 2, Py_BuildValue("K", (uint64_t)(uintptr_t)param));
 	PyObject* pFunc = tls_get_handler_function(CT_RPC_REQUEST);
 	PyObject* pReturn = PyEval_CallObject(pFunc, pArgs);
 
@@ -351,18 +351,35 @@ DSN_PY_API PyObject* dsn_cli_run_helper(const char* command_line)
 }
 
 DSN_PY_API dsn_error_t dsn_app_bridge(int argc, const char** argv)
-{
-    if (argc != 1)
+{    
+    std::vector< std::string> args;
+    for (int i = 0; i < argc; i++)
     {
-        derror("python_helper: we don't support passing parameters to python scripts so far");
-        return dsn::ERR_INVALID_PARAMETERS;
+        std::string ag(*argv++);
+        args.push_back(ag);
     }
 
     new std::thread([=](){
         Py_Initialize();
-        PyRun_SimpleFile(nullptr, argv[0]);
+        char* PyFileName = (char *)args[0].c_str();
+        char** PyParameterList = new char* [args.size()];
+        for (int i = 0;i < args.size(); ++i)
+        {
+            PyParameterList[i] = new char[args[i].size()+1];
+            strcpy(PyParameterList[i], args[i].c_str());
+        }
+        PySys_SetArgv((int)args.size(), PyParameterList);
+        PyObject* PyFileObject = PyFile_FromString(PyFileName, "r");
+        PyRun_SimpleFile(PyFile_AsFile(PyFileObject), PyFileName);
         Py_Finalize();
+        for (int i = 0; i < args.size(); ++i)
+        {
+            delete [] PyParameterList[i];
+        }
+        delete [] PyParameterList;
     });
+    dsn_app_loader_wait();
+    
 
     return dsn::ERR_OK;
 }

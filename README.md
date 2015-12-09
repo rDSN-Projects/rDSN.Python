@@ -2,7 +2,7 @@
 Python dev library atop of rDSN's C service API
 
 ## Overview
-rDSN.Python is a Python library enabling users to run rDSN apps written in Python, or rDSN apps written in C/C++ compiled as dynamic-link libraries (.dll for now, .so and .dylib not tested yet). 
+rDSN.Python is a Python library enabling users to run rDSN apps written in Python, or rDSN apps written in C/C++ compiled as dynamic-link libraries. 
 
 We also provide a special app called "rDSN.Monitor" as a monitor panel for better observation on system running information.
 

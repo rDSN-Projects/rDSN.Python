@@ -4,16 +4,19 @@
 
 **rDSN.monitor** is a test http server based on rDSN.Python. It allows users to easily get control of the whole system and view profiling data on web clients. 
 
-In the future, we have two possible development directions: 
-* We could use rDSN.Python as carrie. Using rDSN.Python to load any rDSN-based programs (notice that it's not necessarily written in Python) as dynamic libraries, rDSN.monitor could monitor any rDSN services.
-* We join rDSN.monitor into rDSN as a regular app serving as daemon to provide web client control.
+**UPDATED** Now rDSN.Monitor supports both two modes! 
+* Standalone Mode: rDSN.Monitor works as a carrier, creating a new thread to load target programs. 
+* Embedded Mode: rDSN.Monitor works as a plugin, running as a daemon app inside the target programs. **(RECOMMENDED)** 
 
 ##Features
 
 * System overview
 * Profiling data visualization
-* Remote file management (Up and down)
+* Online command line interface 
+* Remote file editing 
 * Service automatic deployment and management //TODO
+* Solution wizard for developers //TODO
+* Cluster overview  //TODO
 
 ##To start
 
@@ -21,38 +24,55 @@ To start rDSN.monitor, you should install rDSN.Python first. Check [here](https:
 
 After you properly generated required dlls (dsn.core.dll,dsn.dev.python_helper.dll), please put them under "rDSN.monitor" directory. 
 
-Before the next step, noticing that comparing to rDSN.Python, there are some other packages needed for hosting the http server.
+Before the next step, noticing that comparing to rDSN.Python, there are some other python packages needed for hosting the http server. We recommend you to use [pip](https://pip.pypa.io/en/stable/installing/) to install them. Click the link to see the instructions to install pip.
 
-You could run:
+When you finished installing pip, now run:
 ```bash
 cd .\rDSN.monitor
 pip install -r requirement.txt
 ```
 
-or manually install all of them:
-```bash
-pip install WebOb
+##Scenario I: Standalone Mode
+This mode is convenient when you're writing new functions for rDSN.Monitor and want to test it.
 
-pip install Paste
 
-pip install webapp2
-
-pip install jinja2
-```
-
-##Build dynamic link libraries
+###Build dynamic link libraries of target program and modify config file
 Take "simple_kv" as an example.
 
-1.build dsn.replication.simple_kv.module in rDSN, we get dsn.replication.simple_kv.module.dll, put it under rDSN.monitor directory.
-2.modify config.ini, set "dmodule" param for each app.
+1. build dsn.replication.simple_kv.module in rDSN, we get dsn.replication.simple_kv.module.dll, put it under rDSN.monitor directory.
+2. modify config.ini, set "dmodule" param for each app.
 
-##Launch target program and http server
+###Launch target program and http server
 Then run command
 ```bash
 cd .\rDSN.monitor
-python server.py
+python server.py standalone
 ```
 The Python script will start a thread to run simple_kv and a thread to host the http server.
 
 Now you could visit [here](http://localhost:8080).
 
+##Scenario II: Embedded Mode
+Embedded mode is in more common use.
+
+###Modify config file to enable rDSN.Monitor
+Added the following lines:
+
+```bash
+[apps.monitor]
+name = monitor
+type = monitor
+pools = THREAD_POOL_DEFAULT
+dmodule = dsn.dev.python_helper
+dmodule_bridge_arguments = rDSN.Monitor.py
+```
+###Launch target program
+Now you can directly run your target program!
+
+Take "simple_kv" as an example.
+
+```bash
+dsn.replication.simple_kv.exe config.ini
+```
+
+The target prrogram will automatically startup with rDSN.Monitor on.
