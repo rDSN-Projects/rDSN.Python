@@ -21,6 +21,9 @@ def start_dsn():
         #rDSN.Monitor run as a caller calling the monitored program 
         print "rDSN.Monitor runs in standalone mode"
 
+        _server_thread= serverThread()
+        _server_thread.start()
+
         argv = (c_char_p*2)()
         argv[0] = b'rDSN.Monitor.exe'
         argv[1] = b'config.ini'

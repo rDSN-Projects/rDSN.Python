@@ -7,47 +7,44 @@ var chart = c3.generate({
     data: {
         x: 'x',
         columns: [
-            ['x', '1', '2', '3','4','5','6','7','8','9','10', '11', '12', '13','14','15','16','17','18','19'],
-	    {% for row in TABLEDATA %}['{{row.name}}' {% for i in range(20) %},0{% endfor %} ],{% endfor %}
+            ['x' {% for i in range(20) %}, {{i}}{% endfor %} ],
+	        {% for row in TABLEDATA %}['{{row.name}}' {% for i in range(20) %},0{% endfor %} ],{% endfor %}
         ]
     },
     axis: {
         x: {
+            show:false
         }
-    }
+    },
 });
 
 function updateData(a)
 {
 	$.get("perValue2?task_code={{TASK_CODE}}", function(data, status){
-	var message = JSON.parse(data);
-	var arr = [0,0,0,0,0,0];
-	for (var i = 0; i < message.length; i++) {
-    arr[i] = message[i].value;
-}
+	    var message = JSON.parse(data);
+	    var arr = [0,0,0,0,0,0];
+	    for (var i = 0; i < message.data.length; i++) {
+            arr[i] = (message.data)[i].value;
+        }
 
+        chart.flow({
+            columns: [
+                ['x', a],
+	            {% for i in range(TABLEDATA|length) %}['{{TABLEDATA[i].name}}',arr[{{i}}]],{% endfor %}
+            ],
+	        duration:1000,
+	        done:function(){
+                chart.xgrids.add([{value: a, text:message.time,class:'hoge'}]);
+                setTimeout(function () {
+                    updateData(a+1);
+                },0);
+    	    }
+	    });
 
-    chart.flow({
-        columns: [
-            ['x', a],
-	    {% for i in range(TABLEDATA|length) %}['{{TABLEDATA[i].name}}',arr[{{i}}]],{% endfor %}
-        ],
-	duration:1000,
-	done:function(){
-	setTimeout(function () {
- updateData(a+1);
-
- }, 1000);}
-	});
     });
-
-
-
 }
-setTimeout(function () {
- updateData(4);
+updateData(20);
 
-}, 100);
 
 </script>
 {% include "static/view/tail.html" %}
