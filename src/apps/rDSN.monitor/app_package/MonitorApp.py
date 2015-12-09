@@ -272,12 +272,12 @@ class configureHandler(BaseHandler):
 class selectDisplayHandler(BaseHandler):
     def get(self):
         params = {}
-        queryRes = ast.literal_eval(Native.dsn_cli_run('list_counter'))
+        queryRes = ast.literal_eval(Native.dsn_cli_run('counter.list'))
         params['COUNTER_LIST'] = queryRes 
         self.render_template('selectDisplay.html',params)
 
     def post(self):
-        counter_list = json.loads(self.request.get('counter_list'))
+        counter_list = json.loads(self.request.get('counter.list'))
         queryRes = '{"time":"'+Native.dsn_cli_run('pq time')+'","data":['
         first_flag=0;
         for counter in counter_list:
@@ -285,7 +285,7 @@ class selectDisplayHandler(BaseHandler):
                 queryRes += ','
             else:
                 first_flag = 1
-            res = Native.dsn_cli_run('query_counter '+counter_list[counter])
+            res = Native.dsn_cli_run('counter.query '+counter_list[counter])
             if res=='':
                 res=0
             queryRes += res
