@@ -310,7 +310,7 @@ class psutilQueryHandler(BaseHandler):
         self.response.write(json.dumps(queryRes))
 
 
-def start_http_server():  
+def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp("app_package/static")
     web_app = webapp2.WSGIApplication([
     ('/', mainHandler),
@@ -335,4 +335,4 @@ def start_http_server():
 
     app_list = Cascade([static_app, web_app])
 
-    httpserver.serve(app_list, host='0.0.0.0', port='8080')
+    httpserver.serve(app_list, host='0.0.0.0', port=str(portNum))

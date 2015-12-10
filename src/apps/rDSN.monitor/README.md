@@ -33,14 +33,29 @@ pip install -r requirement.txt
 ```
 
 ##Scenario I: Standalone Mode
-This mode is convenient when you're writing new functions for rDSN.Monitor and want to test it.
+This mode is convenient when you're writing new functions for rDSN.Monitor and want to test it. Here we take "simple_kv" as an example.
 
 
-###Build dynamic link libraries of target program and modify config file
-Take "simple_kv" as an example.
+###Build dynamic link libraries of target program
 
-1. build dsn.replication.simple_kv.module in rDSN, we get dsn.replication.simple_kv.module.dll, put it under rDSN.monitor directory.
-2. modify config.ini, set "dmodule" param for each app.
+Build dsn.replication.simple_kv.module in rDSN, then we get dsn.replication.simple_kv.module.dll, put it under rDSN.monitor directory.
+
+###Modify the config file
+In config file, this part is about monitor config:
+```bash
+[apps.monitor]
+name = monitor
+type = monitor
+arguments = 8080
+pools = THREAD_POOL_DEFAULT
+dmodule = dsn.dev.python_helper
+```
+The 'arguments' is the port number http server will use. 
+
+For every other app (meta, replica), we should make sure:
+```bash
+dmodule = dsn.replication.simple_kv.module
+```
 
 ###Launch target program and http server
 Then run command
@@ -56,16 +71,19 @@ Now you could visit [here](http://localhost:8080).
 Embedded mode is in more common use.
 
 ###Modify config file to enable rDSN.Monitor
-Added the following lines:
-
+At the bottom of monitor config:
 ```bash
 [apps.monitor]
 name = monitor
 type = monitor
 pools = THREAD_POOL_DEFAULT
 dmodule = dsn.dev.python_helper
+```
+Added the following line:
+```bash
 dmodule_bridge_arguments = rDSN.Monitor.py
 ```
+
 ###Launch target program
 Now you can directly run your target program!
 

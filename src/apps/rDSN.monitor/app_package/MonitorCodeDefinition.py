@@ -7,10 +7,6 @@ import MonitorApp
 from dev.python.ServiceApp import *
 THREAD_POOL_DEFAULT = ThreadPoolCode.threadpool_code_register('THREAD_POOL_DEFAULT')
 
-#Entries for threads
-class serverThread (threading.Thread):
-    def run(self):
-        MonitorApp.start_http_server()
 
 class MonitorService(ServiceApp):
     __server = None
@@ -18,7 +14,8 @@ class MonitorService(ServiceApp):
     __task = None
 
     def start(self, argv):
-        _server_thread= serverThread()
+        
+        _server_thread= threading.Thread(target=MonitorApp.start_http_server,args=(argv[1],))
         _server_thread.start()
         return 0
 
