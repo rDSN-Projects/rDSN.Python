@@ -76,6 +76,7 @@ At the bottom of monitor config:
 [apps.monitor]
 name = monitor
 type = monitor
+arguments = 8080
 pools = THREAD_POOL_DEFAULT
 dmodule = dsn.dev.python_helper
 ```
