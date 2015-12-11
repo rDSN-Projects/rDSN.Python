@@ -1,3 +1,40 @@
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<style>
+  .ui-autocomplete {
+    max-height: 400px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+  }
+  /* IE 6 doesn't support max-height
+   * we use height instead, but this forces the menu to always be this tall
+   */
+  * html .ui-autocomplete {
+    height: 400px;
+  }
+  </style>
+<script>
+  $(function() {
+    var availableTags = [
+{% for task in TASK_LIST%}
+		"{{task}}",
+		{% endfor %}
+    ];
+    $( "#tags" ).autocomplete({
+      source: availableTags,
+        select: function(event, ui) { 
+    window.location.href = '{{PAGE}}?task_code='+ui.item.value;
+  }
+    });
+
+    
+  });
+  </script>
+<div class="ui-widget">
+  <label for="tags">Goto:  </label>
+  <input id="tags">
+</div>
 
 <div class="btn-group">
 	<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"  data-toggle="tooltip" title="Choose task type">

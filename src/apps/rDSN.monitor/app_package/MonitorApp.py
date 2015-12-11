@@ -1,4 +1,6 @@
-﻿from paste.cascade import Cascade
+from MonitorCodeDefinition import *
+
+from paste.cascade import Cascade
 from paste import httpserver
 import webapp2
 import sys
@@ -15,6 +17,9 @@ import jinja2
 import ast
 import subprocess
 import json
+import psutil
+
+sys.path.append(os.getcwd() + '/app_package')
 
 def jinja_max(a,b):
     return max(a,b)
@@ -116,6 +121,7 @@ class perValue1Handler(BaseHandler):
         xtitles = queryRes[0]
         tabledata = queryRes[1]
         
+        params['PAGE'] = 'perValue1.html'
         params['XTITLES'] = xtitles
         params['TABLEDATA'] = tabledata
         params['COMPAREBUTTON'] = 'no'
@@ -129,7 +135,8 @@ class perValue2Handler(BaseHandler):
             task_code = 'RPC_NFS_COPY'
 
         queryRes =  ast.literal_eval(Native.dsn_cli_run('pq counter_realtime '+task_code))
-        params['TABLEDATA'] = queryRes
+        params['PAGE'] = 'perValue2.html'
+        params['TABLEDATA'] = queryRes['data']
         self.geneRelate(task_code,params)
 
         self.render_template('perValue2.html',params)    
@@ -174,6 +181,7 @@ class perValue3Handler(BaseHandler):
             params['IFCOMPARE'] = 'yes'
             params['COMPARE_LIST'] = compare_list
         
+        params['PAGE'] = 'perValue3.html'
         params['TABLEDATA'] = tabledata
         params['COMPAREBUTTON'] = 'yes'
         self.render_template('perValue3.html',params)
@@ -212,6 +220,77 @@ class execBashHandler(BaseHandler):
         queryRes = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read()
         print queryRes
         self.response.write(queryRes)
+
+class editorHandler(BaseHandler):
+    def get(self):
+        params = {}
+        dir = os.path.join(os.path.dirname(__file__),"..")
+        working_dir = self.request.get('working_dir')
+        file_name = self.request.get('file_name')
+        if file_name != '':
+            read_file = open(os.path.join(dir,working_dir, file_name),'r')
+            content = read_file.read()
+            read_file.close()
+        else:
+            content = ''
+
+        dir_list = []
+        lastPath = ''
+        for d in working_dir.split('/'):
+            if lastPath!='':
+                lastPath += '/'
+            lastPath +=d
+            dir_list.append({'path':lastPath,'name':d})
+        params['FILES'] = [f for f in os.listdir(os.path.join(dir,working_dir)) if os.path.isfile(os.path.join(dir,working_dir,f))]
+        params['FILEFOLDERS'] = [f for f in os.listdir(os.path.join(dir,working_dir)) if os.path.isdir(os.path.join(dir,working_dir,f))]
+        params['WORKING_DIR'] = working_dir
+        params['DIR_LIST'] = dir_list
+        params['CONTENT'] = content 
+        params['FILE_NAME'] = file_name 
+        
+        self.render_template('editor.html',params)
+    def post(self):
+        content = self.request.get('content')
+        dir = os.path.dirname(__file__)
+        working_dir = self.request.get('working_dir')
+        file_name = self.request.get('file_name')
+        if file_name != '':
+            write_file = open(os.path.join(dir,working_dir, file_name),'w')
+            write_file.write(content)
+            write_file.close()
+            self.response.write("Successfully saved!")
+        else:
+            self.response.write("No file opened!")
+
+class configureHandler(BaseHandler):
+    def get(self):
+        params = {}
+        queryRes = Native.dsn_cli_run('config-dump')
+        params['CONTENT'] = queryRes 
+        self.render_template('configure.html',params)
+
+class selectDisplayHandler(BaseHandler):
+    def get(self):
+        params = {}
+        queryRes = ast.literal_eval(Native.dsn_cli_run('counter.list'))
+        params['COUNTER_LIST'] = queryRes 
+        self.render_template('selectDisplay.html',params)
+
+    def post(self):
+        counter_list = json.loads(self.request.get('counter.list'))
+        queryRes = '{"time":"'+Native.dsn_cli_run('pq time')+'","data":['
+        first_flag=0;
+        for counter in counter_list:
+            if first_flag:
+                queryRes += ','
+            else:
+                first_flag = 1
+            res = Native.dsn_cli_run('counter.query '+counter_list[counter])
+            if res=='':
+                res=0
+            queryRes += res
+        queryRes += ']}'
+        self.response.write(queryRes)
 class perValue2QueryHandler(BaseHandler):
     def get(self):
         task_code = self.request.get('task_code')
@@ -219,17 +298,23 @@ class perValue2QueryHandler(BaseHandler):
             task_code = 'RPC_NFS_COPY'
         queryRes = Native.dsn_cli_run('pq counter_realtime '+task_code)
         self.response.write(queryRes)
-#Entries for threads
-class serverThread (threading.Thread):
-    def run(self):
-        start_http_server()
 
-def start_http_server():  
-    static_app = webob.static.DirectoryApp("static")
-    public_app = webob.static.DirectoryApp("public")
+class psutilQueryHandler(BaseHandler):
+    def get(self):
+        queryRes = {}
+        queryRes['cpu'] = psutil.cpu_percent(interval=1);
+        queryRes['memory'] = psutil.virtual_memory()[2];
+        queryRes['disk'] = psutil.disk_usage('/')[3];
+        queryRes['diskio'] = psutil.disk_io_counters(perdisk=False)
+        queryRes['networkio'] = psutil.net_io_counters()
+        self.response.write(json.dumps(queryRes))
+
+
+def start_http_server(portNum):  
+    static_app = webob.static.DirectoryApp("app_package/static")
     web_app = webapp2.WSGIApplication([
     ('/', mainHandler),
-     ('/main.html', mainHandler),
+    ('/main.html', mainHandler),
     ('/table.html', tableHandler),
     ('/perValue1.html', perValue1Handler),
     ('/perValue2.html', perValue2Handler),
@@ -239,28 +324,15 @@ def start_http_server():
     ('/execCli.html', execCliHandler),
     ('/consoleBash.html', consoleBashHandler),
     ('/execBash.html', execBashHandler),
+    ('/editor.html', editorHandler),
+    ('/configure.html', configureHandler),
+    ('/selectDisplay.html', selectDisplayHandler),
+
     ('/perValue2', perValue2QueryHandler),
+    ('/psutil', psutilQueryHandler),
  
 ], debug=True)
 
-    app_list = Cascade([static_app, web_app,public_app])
+    app_list = Cascade([static_app, web_app])
 
-    httpserver.serve(app_list, host='0.0.0.0', port='8080')
-    #httpserver.serve(app_list, host='127.0.0.1', port='8080')
-
-def start_dsn():
-    argv = (c_char_p*2)()
-    argv[0] = b'rDSN.Monitor.exe'
-    argv[1] = b'config.ini'
-        
-    Native.dsn_run(2, argv, c_bool(1))
-
-if __name__ == '__main__':
-    _server_thread= serverThread()
-    _server_thread.start()
-
-    start_dsn()
-
-    _server_thread.join()
-    
-
+    httpserver.serve(app_list, host='0.0.0.0', port=str(portNum))

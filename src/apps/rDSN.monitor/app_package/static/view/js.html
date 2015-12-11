@@ -147,7 +147,7 @@ function update () {
     node.y = Math.max(0, Math.min(HEIGHT - node.height, d3.event.y));
     d3.select(this).attr("transform", "translate(" + node.x + "," + node.y + ")");
     biHiSankey.relayout();
-    svg.selectAll(".node").selectAll("rect").attr("height", function (d) { return d.height; });
+    svg.selectAll(".node").selectAll("circle").attr("height", function (d) { return d.height; });
     link.attr("d", path);
   }
 
@@ -161,7 +161,7 @@ function update () {
   }
 
   function expand(node) {
-    window.location.href = 'perValue1.html?task_code='+node.name;
+      window.location.href = '{{PAGE}}?task_code='+node.name;
     node.state = "expanded";
     node.children.forEach(function (child) {
       child.state = "collapsed";
@@ -185,7 +185,7 @@ function update () {
         .style("opacity", OPACITY.LINK_DEFAULT);
 
     node
-      .selectAll("rect")
+      .selectAll("circle")
         .style("fill", function (d) {
           d.color = colorScale(d.type.replace(/ .*/, ""));
           return d.color;
@@ -259,7 +259,7 @@ function update () {
   linkEnter.on('mouseenter', function (d) {
     if (!isTransitioning) {
       showTooltip().select(".value").text(function () {
-        if (d.direction > 0) {
+        if (d.dicircleion > 0) {
 	return d.source.name + " -> " + d.target.name + "\n" + formatNumber(d.value);
         }
 	return d.target.name + " -> " + d.source.name + "\n" + formatNumber(d.value);
@@ -287,10 +287,10 @@ function update () {
 
   linkEnter.sort(function (a, b) { return b.thickness - a.thickness; })
     .classed("leftToRight", function (d) {
-      return d.direction > 0;
+      return d.dicircleion > 0;
     })
     .classed("rightToLeft", function (d) {
-      return d.direction < 0;
+      return d.dicircleion < 0;
     })
     .style("marker-end", function () {
       return 'url(#arrowHead)';
@@ -301,7 +301,7 @@ function update () {
       .delay(TRANSITION_DURATION)
       .duration(TRANSITION_DURATION)
       .attr("d", path)
-      .style("stroke-WIDTH", function (d) { return Math.max(1, d.thickness); })
+      .style("stroke-WIDTH", function (d) { return 5; })
       .style("opacity", OPACITY.LINK_DEFAULT);
 
 
@@ -313,7 +313,7 @@ function update () {
     .duration(TRANSITION_DURATION)
     .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
     .style("opacity", OPACITY.NODE_DEFAULT)
-    .select("rect")
+    .select("circle")
       .style("fill", function (d) {
 
         d.color = colorScale(d.type.replace(/ .*/, ""));
@@ -355,7 +355,7 @@ function update () {
       .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
 
   nodeEnter.append("text");
-  nodeEnter.append("rect")
+  nodeEnter.append("circle")
     .style("fill", function (d) {
       d.color = colorScale(d.type.replace(/ .*/, ""));
       return d.color;
@@ -364,8 +364,7 @@ function update () {
       return d3.rgb(colorScale(d.type.replace(/ .*/, ""))).darker(0.1);
     })
     .style("stroke-WIDTH", "1px")
-    .attr("height", function (d) { return d.height; })
-    .attr("width", biHiSankey.nodeWidth());
+    .attr("r", 20)
 
   node.on("mouseenter", function (g) {
     if (!isTransitioning) {
@@ -373,7 +372,7 @@ function update () {
       highlightConnected(g);
       fadeUnconnected(g);
 
-      d3.select(this).select("rect")
+      d3.select(this).select("circle")
         .style("fill", function (d) {
           d.color = d.netFlow > 0 ? INFLOW_COLOR : OUTFLOW_COLOR;
           return d.color;
@@ -478,7 +477,7 @@ function update () {
       node.filter(function (d) {
         return d.ancestors.indexOf(g) >= 0;
       }).style("opacity", OPACITY.NODE_HIGHLIGHT)
-        .select("rect")
+        .select("circle")
           .style("fill", highlightColor);
     }
   });
@@ -494,7 +493,7 @@ function update () {
       node.filter(function (d) {
         return d.ancestors.indexOf(g) >= 0;
       }).style("opacity", OPACITY.NODE_DEFAULT)
-        .select("rect")
+        .select("circle")
           .style("fill", function (d) { return d.color; });
     }
   });
