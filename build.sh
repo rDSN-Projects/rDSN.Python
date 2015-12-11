@@ -2,11 +2,22 @@
 set -e
 printf "%s\n" "${DSN_ROOT:?You must set DSN_ROOT}"
 echo "[rDSN.Python] cmake"
-mkdir builder
+
+if [-f builder] 
+then
+    rm builder
+fi
+
+if [! -d builder] 
+then
+    mkdir builder
+fi
+
 cd builder
 cmake ..
+
 echo "[rDSN.Python] make"
-make
+make install
 
 echo "[rDSN.Python] install python2.7"
 sudo apt-get install python2.7
