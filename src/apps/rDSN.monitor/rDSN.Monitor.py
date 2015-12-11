@@ -1,7 +1,6 @@
 ﻿import sys
 import os
 import threading
-import time
 sys.path.append(os.getcwd() + '/app_package')
 from MonitorApp import *
 
@@ -14,8 +13,9 @@ def start_dsn():
         print "rDSN.Monitor runs in embedded mode"
 
         Native.dsn_app_loader_signal()
-
-        time.sleep(1)
+        #to be fix, hangs forever now to keep python interpreter alive
+        dummy_event = threading.Event()
+        dummy_event.wait() 
 
     elif sys.argv[1] == 'standalone':
         #rDSN.Monitor run as a caller calling the monitored program 
