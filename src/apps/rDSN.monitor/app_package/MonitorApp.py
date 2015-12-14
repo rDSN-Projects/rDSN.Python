@@ -5,6 +5,7 @@ from paste import httpserver
 import webapp2
 import sys
 import os
+import inspect
 import threading
 import thread
 import webob.static 
@@ -19,7 +20,7 @@ import subprocess
 import json
 import psutil
 
-sys.path.append(os.getcwd() + '/app_package')
+sys.path.append(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + '/app_package')
 
 def jinja_max(a,b):
     return max(a,b)
@@ -331,7 +332,7 @@ class clusterQueryHandler(BaseHandler):
         self.response.write()
 
 def start_http_server(portNum):  
-    static_app = webob.static.DirectoryApp("app_package/static")
+    static_app = webob.static.DirectoryApp(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/static")
     web_app = webapp2.WSGIApplication([
     ('/', mainHandler),
     ('/main.html', mainHandler),

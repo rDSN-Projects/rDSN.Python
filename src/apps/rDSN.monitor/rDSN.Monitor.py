@@ -1,7 +1,8 @@
 ﻿import sys
 import os
+import inspect
 import threading
-sys.path.append(os.getcwd() + '/app_package')
+sys.path.append(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + '/app_package')
 from MonitorApp import *
 
 def start_dsn():
