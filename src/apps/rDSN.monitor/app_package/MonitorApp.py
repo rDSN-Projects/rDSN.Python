@@ -23,6 +23,7 @@ sys.path.append(os.getcwd() + '/app_package')
 
 def jinja_max(a,b):
     return max(a,b)
+
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
@@ -291,6 +292,22 @@ class selectDisplayHandler(BaseHandler):
             queryRes += res
         queryRes += ']}'
         self.response.write(queryRes)
+
+class clusterinfoHandler(BaseHandler):
+    def get(self):
+        params = {}
+        metaData = json.loads(Native.dsn_cli_run('meta.meta_server_state'))
+        params['meta'] = json.dumps(metaData,sort_keys=True, indent=4, separators=(',', ': '))
+        replicaNum = len(metaData["_nodes"])
+        replicaData=[]
+        for i in replicaNum:
+            replicaSingleData = json.loads(Native.dsn_cli_run('replica'+str(i+1)+'.replica_stub_info'))
+            replicaData.append(json.dumps(replicaSingleData,sort_keys=True, indent=4, separators=(',', ': ')))
+        params['replica'] = replicaData
+        self.render_template('clusterinfo.html',params)
+
+
+
 class perValue2QueryHandler(BaseHandler):
     def get(self):
         task_code = self.request.get('task_code')
@@ -309,6 +326,9 @@ class psutilQueryHandler(BaseHandler):
         queryRes['networkio'] = psutil.net_io_counters()
         self.response.write(json.dumps(queryRes))
 
+class clusterQueryHandler(BaseHandler):
+    def get(self):
+        self.response.write()
 
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp("app_package/static")
@@ -327,9 +347,11 @@ def start_http_server(portNum):
     ('/editor.html', editorHandler),
     ('/configure.html', configureHandler),
     ('/selectDisplay.html', selectDisplayHandler),
+    ('/clusterinfo.html', clusterinfoHandler),
 
     ('/perValue2', perValue2QueryHandler),
     ('/psutil', psutilQueryHandler),
+    ('/clusterinfo', clusterQueryHandler),
  
 ], debug=True)
 
