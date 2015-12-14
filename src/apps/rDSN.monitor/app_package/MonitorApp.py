@@ -297,12 +297,12 @@ class selectDisplayHandler(BaseHandler):
 class clusterinfoHandler(BaseHandler):
     def get(self):
         params = {}
-        metaData = json.loads(Native.dsn_cli_run('meta.meta_server_state'))
+        metaData = json.loads(Native.dsn_cli_run('meta.info'))
         params['meta'] = json.dumps(metaData,sort_keys=True, indent=4, separators=(',', ': '))
-        replicaNum = len(metaData["_nodes"])
+        replicaNum = len(metaData["_nodes"].keys())
         replicaData=[]
-        for i in replicaNum:
-            replicaSingleData = json.loads(Native.dsn_cli_run('replica'+str(i+1)+'.replica_stub_info'))
+        for i in range(replicaNum):
+            replicaSingleData = json.loads(Native.dsn_cli_run('replica'+str(i+1)+'.info'))
             replicaData.append(json.dumps(replicaSingleData,sort_keys=True, indent=4, separators=(',', ': ')))
         params['replica'] = replicaData
         self.render_template('clusterinfo.html',params)
