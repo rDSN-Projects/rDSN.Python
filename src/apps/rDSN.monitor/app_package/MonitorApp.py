@@ -5,6 +5,7 @@ from paste import httpserver
 import webapp2
 import sys
 import os
+import inspect
 import threading
 import thread
 import webob.static 
@@ -19,10 +20,11 @@ import subprocess
 import json
 import psutil
 
-sys.path.append(os.getcwd() + '/app_package')
+sys.path.append(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + '/app_package')
 
 def jinja_max(a,b):
     return max(a,b)
+
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
@@ -291,6 +293,22 @@ class selectDisplayHandler(BaseHandler):
             queryRes += res
         queryRes += ']}'
         self.response.write(queryRes)
+
+class clusterinfoHandler(BaseHandler):
+    def get(self):
+        params = {}
+        metaData = json.loads(Native.dsn_cli_run('meta.info'))
+        params['meta'] = json.dumps(metaData,sort_keys=True, indent=4, separators=(',', ': '))
+        replicaNum = len(metaData["_nodes"].keys())
+        replicaData=[]
+        for i in range(replicaNum):
+            replicaSingleData = json.loads(Native.dsn_cli_run('replica'+str(i+1)+'.info'))
+            replicaData.append(json.dumps(replicaSingleData,sort_keys=True, indent=4, separators=(',', ': ')))
+        params['replica'] = replicaData
+        self.render_template('clusterinfo.html',params)
+
+
+
 class perValue2QueryHandler(BaseHandler):
     def get(self):
         task_code = self.request.get('task_code')
@@ -309,9 +327,12 @@ class psutilQueryHandler(BaseHandler):
         queryRes['networkio'] = psutil.net_io_counters()
         self.response.write(json.dumps(queryRes))
 
+class clusterQueryHandler(BaseHandler):
+    def get(self):
+        self.response.write()
 
 def start_http_server(portNum):  
-    static_app = webob.static.DirectoryApp("app_package/static")
+    static_app = webob.static.DirectoryApp(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/static")
     web_app = webapp2.WSGIApplication([
     ('/', mainHandler),
     ('/main.html', mainHandler),
@@ -327,9 +348,11 @@ def start_http_server(portNum):
     ('/editor.html', editorHandler),
     ('/configure.html', configureHandler),
     ('/selectDisplay.html', selectDisplayHandler),
+    ('/clusterinfo.html', clusterinfoHandler),
 
     ('/perValue2', perValue2QueryHandler),
     ('/psutil', psutilQueryHandler),
+    ('/clusterinfo', clusterQueryHandler),
  
 ], debug=True)
 
