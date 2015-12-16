@@ -3,15 +3,7 @@ set -e
 printf "%s\n" "${DSN_ROOT:?You must set DSN_ROOT}"
 echo "[rDSN.Python] cmake"
 
-if [-f builder] 
-then
-    rm builder
-fi
-
-if [! -d builder] 
-then
-    mkdir builder
-fi
+mkdir -p builder
 
 cd builder
 cmake ..
@@ -20,9 +12,9 @@ echo "[rDSN.Python] make"
 make install
 
 echo "[rDSN.Python] install python2.7"
-sudo apt-get install python2.7
+sudo apt-get install -y python2.7
 echo "[rDSN.Python] install pip"
-sudo apt-get install python-pip
+sudo apt-get install -y python-pip
 cd ../src
 sudo python setup.py install
 
