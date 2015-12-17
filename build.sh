@@ -26,8 +26,6 @@ virtualenv venv
 
 echo "[rDSN.Python] set virtual env successfully!"
 
-cd ..
-
 cd ./src
 python setup.py install
 
