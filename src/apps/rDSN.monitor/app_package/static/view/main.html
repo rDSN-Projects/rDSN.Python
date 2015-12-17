@@ -8,9 +8,10 @@
 
 	</div>
 </div>
+
 <script src="js/liquidFillGauge.js" language="JavaScript"></script>
 <div class="container-fluid bg-3 text-center"> 
-  <h2>System Utility Overview</h2>
+  <h2>Node Utility Overview</h2>
   <div class="row">
     <div class="col-sm-4">
       <h4>CPU Usage</h4>
@@ -156,7 +157,7 @@ $.get("psutil", function(data, status){
     <div class="col-sm-8">
       <h2>New comers?</h2>
       <h4>Follow a simple guidance to fully understand the system</h4> 
-      <button class="btn btn-default btn-lg">Start Now</button>
+      <button class="btn btn-default btn-lg" onclick='StartUpTour.start(true);'>Start Now</button>
     </div>
     <div class="col-sm-4">
       <span class="glyphicon glyphicon-blackboard logo"></span>
@@ -183,12 +184,14 @@ $.get("psutil", function(data, status){
   <div class="row">
     <div class="col-sm-4">
       <span class="glyphicon glyphicon-home logo-small"></span>
-      <h4>Quick Start-up</h4>
+      <div id="StartUp_Start"></div>
+      <h4><a href='javascript:StartUpTour.start(true);'>Quick Start-up</a></h4>
       <p>Follow a simple guidance to fully understand the system</p>
     </div>
     <div class="col-sm-4">
       <span class="glyphicon glyphicon-pushpin logo-small"></span>
-      <h4>Time-out analysis</h4>
+      <div id="TimeOut_Start"></div>
+      <h4><a href='javascript:TimeOutTour.start();'>Time-out analysis</a></h4>
       <p>A complete solution for some external-facing tasks experiencing continuous time-outs</p>
     </div>
   </div>
