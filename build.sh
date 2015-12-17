@@ -21,8 +21,6 @@ echo "[rDSN.Python] Install virtualenv"
 sudo pip install virtualenv
 
 echo "[rDSN.Python] create virtualenv"
-mkdir -p env
-cd env
 virtualenv venv
 . venv/bin/activate
 
@@ -36,6 +34,10 @@ python setup.py install
 echo "[rDSN.Python] install python dependency packages"
 cd apps/rDSN.monitor
 pip install -r requirement.txt
+
+cd ../../..
+virtualenv --relocatable venv
+
 
 echo "[rDSN.Python] install successfully!"
 
