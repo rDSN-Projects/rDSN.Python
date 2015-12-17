@@ -11,16 +11,33 @@ cmake ..
 echo "[rDSN.Python] make"
 make install
 
+cd ..
+
 echo "[rDSN.Python] install python2.7"
 sudo apt-get install -y python2.7
-echo "[rDSN.Python] install pip"
-sudo apt-get install -y python-pip
-cd ../src
-sudo python setup.py install
+
+
+echo "[rDSN.Python] Install virtualenv"
+sudo pip install virtualenv
+
+echo "[rDSN.Python] create virtualenv"
+virtualenv venv
+. venv/bin/activate
+
+echo "[rDSN.Python] set virtual env successfully!"
+
+cd ..
+
+cd ./src
+python setup.py install
 
 echo "[rDSN.Python] install python dependency packages"
 cd apps/rDSN.monitor
-sudo pip install -r requirement.txt
+pip install -r requirement.txt
+
+cd ../../..
+virtualenv --relocatable venv
+
 
 echo "[rDSN.Python] install successfully!"
 
