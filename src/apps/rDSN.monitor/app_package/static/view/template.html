@@ -101,8 +101,9 @@ TimeOutTour.init();
 			<li><a href="editor.html" data-toggle="tooltip" title="An online editor for editing files">Vim</a></li>
 			<li><a href="configure.html" data-toggle="tooltip" title="Show all configuration with descriptions">Configuration</a></li>
 			<li><a href="selectDisplay.html" data-toggle="tooltip" title="Show a dynamic graph with selected counters">selectDisplay</a></li>
+            {% if IFMETA== True %}
 			<li><a href="clusterinfo.html" data-toggle="tooltip" title="Show cluster info">clusterinfo</a></li>
-
+            {% endif %}
 		</ul>
 	</div>
 </nav>

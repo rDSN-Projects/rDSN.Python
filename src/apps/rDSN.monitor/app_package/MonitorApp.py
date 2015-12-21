@@ -9,7 +9,7 @@ import inspect
 import threading
 import thread
 import webob.static 
-import urllib
+import urllib2
 import cgi
 from StringIO import StringIO
 from ctypes import *
@@ -30,6 +30,8 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 JINJA_ENVIRONMENT.globals.update(jinja_max=jinja_max)
+
+global_info = {}
 
 #webapp2 handlers
 
@@ -97,7 +99,9 @@ class BaseHandler(webapp2.RequestHandler):
 #webapp2 handlers
 class mainHandler(BaseHandler):
     def get(self):
-        self.render_template('main.html')
+        params = {}
+        params['IFMETA'] = 'meta' in Native.dsn_cli_run('engine')
+        self.render_template('main.html',params)
 
 class tableHandler(BaseHandler):
     def get(self):
@@ -299,10 +303,13 @@ class clusterinfoHandler(BaseHandler):
         params = {}
         metaData = json.loads(Native.dsn_cli_run('meta.info'))
         params['meta'] = json.dumps(metaData,sort_keys=True, indent=4, separators=(',', ': '))
-        replicaNum = len(metaData["_nodes"].keys())
+        replicaList = []
+        for replica in metaData["_nodes"].keys():
+            replicaList.append(replica.split(':')[0])
+        replicaList = list(set(replicaList))
         replicaData=[]
-        for i in range(replicaNum):
-            replicaSingleData = json.loads(Native.dsn_cli_run('replica'+str(i+1)+'.info'))
+        for replica in replicaList:
+            replicaSingleData = json.loads(urllib2.urlopen("http://"+replica+":"+str(global_info['portNum'])+"/replicainfo").read())
             replicaData.append(json.dumps(replicaSingleData,sort_keys=True, indent=4, separators=(',', ': ')))
         params['replica'] = replicaData
         self.render_template('clusterinfo.html',params)
@@ -327,9 +334,16 @@ class psutilQueryHandler(BaseHandler):
         queryRes['networkio'] = psutil.net_io_counters()
         self.response.write(json.dumps(queryRes))
 
-class clusterQueryHandler(BaseHandler):
+class replicaQueryHandler(BaseHandler):
     def get(self):
-        self.response.write()
+        queryList = []
+        for nodeinfo in Native.dsn_cli_run('engine').split('\n'):
+            if 'replica' in nodeinfo:
+                queryRes = Native.dsn_cli_run(nodeinfo.split('.')[1]+'.info')
+                if 'unknown command' not in queryRes:
+                    queryList.append(queryRes)
+        queryRes = '[' + ','.join(queryList) + ']'
+        self.response.write(queryRes)
 
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/static")
@@ -352,10 +366,11 @@ def start_http_server(portNum):
 
     ('/perValue2', perValue2QueryHandler),
     ('/psutil', psutilQueryHandler),
-    ('/clusterinfo', clusterQueryHandler),
+    ('/replicainfo', replicaQueryHandler),
  
 ], debug=True)
 
     app_list = Cascade([static_app, web_app])
+    global_info['portNum'] = portNum
 
     httpserver.serve(app_list, host='0.0.0.0', port=str(portNum))
