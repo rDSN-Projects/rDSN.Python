@@ -230,7 +230,7 @@ class execBashHandler(BaseHandler):
 class editorHandler(BaseHandler):
     def get(self):
         params = {}
-        dir = os.path.join(os.path.dirname(__file__),"..")
+        dir = os.getcwd()
         working_dir = self.request.get('working_dir')
         file_name = self.request.get('file_name')
         if file_name != '':
