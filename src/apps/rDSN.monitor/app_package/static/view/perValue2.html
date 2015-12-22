@@ -9,13 +9,23 @@ var chart = c3.generate({
         columns: [
             ['x' {% for i in range(20) %}, {{i}}{% endfor %} ],
 	        {% for row in TABLEDATA %}['{{row.name}}' {% for i in range(20) %},0{% endfor %} ],{% endfor %}
-        ]
+        ],
+        colors: {
+            'QUEUE(ns)@server': '#1F77B4',
+            'EXEC(ns)@server': '#FF7F0E',
+            'RPC.SERVER(ns)@server': '#2CA02C',
+            'QUEUE(ns)@client': '#D62728',
+            'EXEC(ns)@client': '#9467BD',
+            'RPC.CLIENT(ns)@client': '#8C564B',
+            "AIO.LATENCY(ns)": '#00FF00',
+        },
     },
     axis: {
         x: {
             show:false
         }
     },
+    
 });
 
 function updateData(a)

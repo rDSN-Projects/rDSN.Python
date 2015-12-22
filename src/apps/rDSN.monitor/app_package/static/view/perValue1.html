@@ -18,13 +18,14 @@ var chart = c3.generate({
 	{% endfor %}
         ],
         type: 'scatter',
-	colors: {
-            "QUEUE(ns)@server": '#B22222',
-            "EXEC(ns)@server": '#FF8C00',
-            "RPC.SERVER(ns)@server": '#FFD700',
-            "QUEUE(ns)@client": '#191970',
-            "EXEC(ns)@client": '#006400',
-            "RPC.CLIENT(ns)@client": '#008B8B',
+        colors: {
+            'QUEUE(ns)@server': '#1F77B4',
+            'EXEC(ns)@server': '#FF7F0E',
+            'RPC.SERVER(ns)@server': '#2CA02C',
+            'QUEUE(ns)@client': '#D62728',
+            'EXEC(ns)@client': '#9467BD',
+            'RPC.CLIENT(ns)@client': '#8C564B',
+            "AIO.LATENCY(ns)": '#00FF00',
         },
     },
     subchart: {
