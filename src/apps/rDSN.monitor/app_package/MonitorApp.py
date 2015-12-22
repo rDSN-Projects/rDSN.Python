@@ -76,7 +76,7 @@ class BaseHandler(webapp2.RequestHandler):
                 if task['name'] not in task_dict:
                     task_dict[task['name']] = len(task_dict)
                     call_task_list.append(task['name'])
-            link_list.append({"source":task_dict[callee['name']],"target":task_dict[task['name']],"value":task['num']})
+                link_list.append({"source":task_dict[callee['name']],"target":task_dict[task['name']],"value":task['num']})
 
         for caller in caller_list:
             single_list = ast.literal_eval(Native.dsn_cli_run('pq call '+caller['name']))[1]
@@ -84,7 +84,7 @@ class BaseHandler(webapp2.RequestHandler):
                 if task['name'] not in task_dict:
                     task_dict[task['name']] = len(task_dict)
                     call_task_list.append(task['name'])
-            link_list.append({"source":task_dict[task['name']],"target":task_dict[caller['name']],"value":task['num']})
+                link_list.append({"source":task_dict[task['name']],"target":task_dict[caller['name']],"value":task['num']})
         
 
         sharer_list = ast.literal_eval(Native.dsn_cli_run('pq pool_sharer '+task_code))

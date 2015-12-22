@@ -23,6 +23,11 @@ var chart = c3.generate({
     axis: {
         x: {
             show:false
+        },
+        y : {
+            tick: {
+                format: d3.format(",")
+            }
         }
     },
     

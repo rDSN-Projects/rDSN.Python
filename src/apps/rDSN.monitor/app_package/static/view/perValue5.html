@@ -32,7 +32,10 @@ categories: [{% for item in QUEUE_LIST %}'{{item}}',{% endfor %}]
 	       */
         },
 	y:{
-		label: 'queue length'
+		label: 'queue length',
+        tick: {
+                format: d3.format(",")
+        }
 	}
 	}
 });

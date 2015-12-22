@@ -39,7 +39,10 @@ var chart = c3.generate({
             }
         },
         y: {
-            label: 'Latency (ns)'
+            label: 'Latency (ns)',
+            tick: {
+                format: d3.format(",")
+            }
         }
     }
 });

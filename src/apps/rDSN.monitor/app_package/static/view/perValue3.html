@@ -54,7 +54,10 @@ categories: ['{{TASK_CODE}}' {% if IFCOMPARE=='yes'%}{% for item in COMPARE_LIST
 	       */
         },
 	y:{
-		label: 'ns'
+		label: 'ns',
+        tick: {
+                format: d3.format(",")
+            }
 	}
 	}
 });
