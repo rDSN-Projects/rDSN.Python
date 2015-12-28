@@ -19,6 +19,7 @@ import ast
 import subprocess
 import json
 import psutil
+import mimetypes
 
 sys.path.append(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + '/app_package')
 
@@ -31,7 +32,19 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True)
 JINJA_ENVIRONMENT.globals.update(jinja_max=jinja_max)
 
-global_info = {}
+class AppStaticFileHandler(webapp2.RequestHandler):
+    def get(self, path):
+        abs_path = os.path.abspath(os.path.join('./', path))
+        if os.path.isdir(abs_path) or abs_path.find(os.getcwd()) != 0:
+            self.response.set_status(403)
+            return
+        try:
+            f = open(abs_path, 'r')
+            self.response.headers.add_header('Content-Type', mimetypes.guess_type(abs_path)[0])
+            self.response.out.write(f.read())
+            f.close()
+        except:
+            self.response.set_status(404)
 
 #webapp2 handlers
 
@@ -123,12 +136,30 @@ class perValue1Handler(BaseHandler):
             task_code = 'RPC_NFS_COPY'
         self.geneRelate(task_code,params)
 
-        queryRes = ast.literal_eval(Native.dsn_cli_run('pq counter_sample '+task_code))
-        xtitles = queryRes[0]
-        tabledata = queryRes[1]
-        
+        remote_address = self.request.get('remote_address')
+        remote_queryRes = []
+        if remote_address != '':
+            params['REMOTE_ADDRESS'] = remote_address
+            remote_queryRes = list(ast.literal_eval(urllib2.urlopen("http://"+remote_address+"/remoteCounterSample?task_code="+task_code).read()))
+            
+        queryRes = list(ast.literal_eval(Native.dsn_cli_run('pq counter_sample '+task_code)))
+        xtitles = []
+        xtitles2 = []
+        remote_mode = ''
+
+        if remote_address !='':
+            remote_mode = 'yes'
+            tabledata = [queryRes[1][index] if len(queryRes[1][index])>1 else remote_queryRes[1][index] for index in range(len(queryRes[1]))]
+            xtitles = queryRes[0][0:3]
+            xtitles2 = queryRes[0][3:6]
+        else:
+            tabledata = queryRes[1]
+            xtitles = queryRes[0]
+
         params['PAGE'] = 'perValue1.html'
         params['XTITLES'] = xtitles
+        params['XTITLES2'] = xtitles2
+        params['REMOTE_MODE'] = remote_mode
         params['TABLEDATA'] = tabledata
         params['COMPAREBUTTON'] = 'no'
         self.render_template('perValue1.html',params)
@@ -158,12 +189,31 @@ class perValue3Handler(BaseHandler):
         if ifcompare=='':
             ifcompare = 'no'
 
-        queryRes = ast.literal_eval(Native.dsn_cli_run('pq counter_calc '+task_code))
+        curr_percent = self.request.get('curr_percent')
+        params['CURR_PERCENT'] = curr_percent if curr_percent != '' else '50'
+
+        queryRes = list(ast.literal_eval(Native.dsn_cli_run('pq counter_calc '+task_code + ' ' + curr_percent if curr_percent != '50' else '')))
+
+        remote_address = self.request.get('remote_address')
+        remote_queryRes = []
+        if remote_address != '':
+            params['REMOTE_ADDRESS'] = remote_address
+            remote_queryRes = list(ast.literal_eval(urllib2.urlopen("http://"+remote_address+"/remoteCounterCalc?task_code="+task_code).read()))
+        
+            if (queryRes[0]==0 and queryRes[1]==0 and queryRes[2]==0):
+                queryRes[0] = remote_queryRes[0]
+                queryRes[1] = remote_queryRes[1]
+                queryRes[2] = remote_queryRes[2]
+            if (queryRes[3]==0 and queryRes[4]==0 and queryRes[5]==0):
+                queryRes[3] = remote_queryRes[3]
+                queryRes[4] = remote_queryRes[4]
+                queryRes[5] = remote_queryRes[5]
+
         tabledata = {}
-        tabledata['nc']=[queryRes[0]]
+        tabledata['nc']=[(queryRes[0]-queryRes[3])/2]
         tabledata['qs']=[queryRes[1]]
         tabledata['es']=[queryRes[2]]
-        tabledata['nr']=[queryRes[3]]
+        tabledata['nr']=tabledata['nc']
         tabledata['qc']=[queryRes[4]]
         tabledata['ec']=[queryRes[5]]
         tabledata['a']=[queryRes[6]]
@@ -190,6 +240,7 @@ class perValue3Handler(BaseHandler):
         params['PAGE'] = 'perValue3.html'
         params['TABLEDATA'] = tabledata
         params['COMPAREBUTTON'] = 'yes'
+
         self.render_template('perValue3.html',params)
 
 class perValue5Handler(BaseHandler):
@@ -291,13 +342,62 @@ class selectDisplayHandler(BaseHandler):
                 queryRes += ','
             else:
                 first_flag = 1
-            res = Native.dsn_cli_run('counter.query '+counter_list[counter])
+            res = Native.dsn_cli_run('counter.sample '+counter_list[counter])
             if res=='':
                 res=0
             queryRes += res
         queryRes += ']}'
         self.response.write(queryRes)
 
+class fileHandler(BaseHandler):
+    def get(self):
+        params = {}
+        dir = os.path.dirname(os.getcwd()+"/")
+        working_dir = self.request.get('working_dir')
+
+        dir_list = []
+        lastPath = ''
+        for d in working_dir.split('/'):
+            if lastPath!='':
+                lastPath += '/'
+            lastPath +=d
+            dir_list.append({'path':lastPath,'name':d})
+        params['FILES'] = [f for f in os.listdir(os.path.join(dir,working_dir)) if os.path.isfile(os.path.join(dir,working_dir,f))]
+        params['FILEFOLDERS'] = [f for f in os.listdir(os.path.join(dir,working_dir)) if os.path.isdir(os.path.join(dir,working_dir,f))]
+        params['WORKING_DIR'] = working_dir
+        params['DIR_LIST'] = dir_list
+        
+        self.render_template('file.html',params)
+    def post(self):
+        params = {}
+        dir = os.path.dirname(os.getcwd()+"/")
+        working_dir = self.request.get('working_dir')
+        
+        try:
+            raw_file = self.request.get('fileToUpload')
+            file_name = self.request.get('file_name')
+            savedFile = open(os.path.join(dir,working_dir,file_name),'wb')
+            savedFile.write(raw_file)
+            savedFile.close()
+
+            params['RESPONSE'] = 'success'
+        except:
+            params['RESPONSE'] = 'fail'
+
+        dir_list = []
+        lastPath = ''
+        for d in working_dir.split('/'):
+            if lastPath!='':
+                lastPath += '/'
+            lastPath +=d
+            dir_list.append({'path':lastPath,'name':d})
+        params['FILES'] = [f for f in os.listdir(os.path.join(dir,working_dir)) if os.path.isfile(os.path.join(dir,working_dir,f))]
+        params['FILEFOLDERS'] = [f for f in os.listdir(os.path.join(dir,working_dir)) if os.path.isdir(os.path.join(dir,working_dir,f))]
+        params['WORKING_DIR'] = working_dir
+        params['DIR_LIST'] = dir_list
+
+        self.render_template('file.html',params)
+'''
 class clusterinfoHandler(BaseHandler):
     def get(self):
         params = {}
@@ -313,7 +413,7 @@ class clusterinfoHandler(BaseHandler):
             replicaData.append(json.dumps(replicaSingleData,sort_keys=True, indent=4, separators=(',', ': ')))
         params['replica'] = replicaData
         self.render_template('clusterinfo.html',params)
-
+'''
 
 
 class perValue2QueryHandler(BaseHandler):
@@ -345,6 +445,17 @@ class replicaQueryHandler(BaseHandler):
         queryRes = '[' + ','.join(queryList) + ']'
         self.response.write(queryRes)
 
+class remoteCounterSampleQueryHandler(BaseHandler):
+    def get(self):
+        task_code = self.request.get('task_code')
+        self.response.write(Native.dsn_cli_run('pq counter_sample '+task_code))
+
+class remoteCounterCalcQueryHandler(BaseHandler):
+    def get(self):
+        task_code = self.request.get('task_code')
+        curr_percent = self.request.get('curr_percent')
+        self.response.write(Native.dsn_cli_run('pq counter_calc '+task_code+' '+curr_percent if curr_percent!='50' else ''))
+
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/static")
     web_app = webapp2.WSGIApplication([
@@ -362,15 +473,16 @@ def start_http_server(portNum):
     ('/editor.html', editorHandler),
     ('/configure.html', configureHandler),
     ('/selectDisplay.html', selectDisplayHandler),
-    ('/clusterinfo.html', clusterinfoHandler),
-
+    ('/file.html', fileHandler),
+#    ('/clusterinfo.html', clusterinfoHandler),
     ('/perValue2', perValue2QueryHandler),
     ('/psutil', psutilQueryHandler),
     ('/replicainfo', replicaQueryHandler),
- 
+    ('/remoteCounterSample', remoteCounterSampleQueryHandler),
+    ('/remoteCounterCalc', remoteCounterCalcQueryHandler),
+    ('/app/(.+)', AppStaticFileHandler)
 ], debug=True)
 
     app_list = Cascade([static_app, web_app])
-    global_info['portNum'] = portNum
 
     httpserver.serve(app_list, host='0.0.0.0', port=str(portNum))

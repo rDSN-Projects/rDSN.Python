@@ -14,11 +14,6 @@
 <link href="http://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
 <link href="css/bootstrap-tour.min.css" rel="stylesheet" type="text/css">
 
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <!-- Load d3.js and c3.js -->
 <script src="js/d3.min.js"></script>
 <script src="js/c3.min.js"></script>
@@ -48,6 +43,11 @@ body {
   }  
 </style>
 <body>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <script>
 // Instance the tour
 var StartUpTour = new Tour({
@@ -101,6 +101,7 @@ TimeOutTour.init();
 			<li><a href="editor.html" data-toggle="tooltip" title="An online editor for editing files">Vim</a></li>
 			<li><a href="configure.html" data-toggle="tooltip" title="Show all configuration with descriptions">Configuration</a></li>
 			<li><a href="selectDisplay.html" data-toggle="tooltip" title="Show a dynamic graph with selected counters">selectDisplay</a></li>
+			<li><a href="file.html" data-toggle="tooltip" title="Show a dynamic graph with selected counters">fileView</a></li>
             {% if IFMETA== True %}
 			<li><a href="clusterinfo.html" data-toggle="tooltip" title="Show cluster info">clusterinfo</a></li>
             {% endif %}
@@ -121,6 +122,11 @@ TimeOutTour.init();
 </div>
 {% block body %}
 {% endblock %}
+<script>
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip(); 
+});
+</script>
 </body>
 </html>
 

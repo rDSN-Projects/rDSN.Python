@@ -122,7 +122,11 @@ $('#get-checked-data').on('click', function(event) {
     <div id="call" class="collapse">
         <div class="well" style="max-height: 300px;overflow: auto;">
             <ul id="check-list-box" class="list-group checked-list-box">
-                {% for counter in COUNTER_LIST %}<li class="list-group-item">{{counter}}</li>{% endfor %}
+                {% for section in COUNTER_LIST.items() %}
+                    {% for counter in section[1] %}
+                    <li class="list-group-item">{{section[0]}} {{counter}}</li>
+                    {% endfor %}
+                {% endfor %}
             </ul>
         </div>
         <button class="btn btn-primary col-xs-12" id="get-checked-data">Start monitoring!</button>

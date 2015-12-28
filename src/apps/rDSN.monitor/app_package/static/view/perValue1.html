@@ -7,12 +7,22 @@ var chart = c3.generate({
     data: {
         xs: {
 	{% for item in XTITLES %}
-	"{{item}}":"x",
+	    "{{item}}":"x",
 	{% endfor %}
+    {% if REMOTE_MODE == 'yes' %}
+	    {% for item in XTITLES2 %}
+	        "{{item}}":"x2",
+	    {% endfor %}
+    {% endif %}
         },
         // iris data from R
         columns: [
-        ["x"{% for i in range(1000) %},{{i*1.0/10}}{% endfor %}],
+    {% if REMOTE_MODE == 'yes' %}
+        ["x"{% for i in range(TABLEDATA[0]|length+1) %},{{i*100.0/(TABLEDATA[0]|length)}}{% endfor %}],
+        ["x2"{% for i in range(TABLEDATA[3]|length+1) %},{{i*100.0/(TABLEDATA[3]|length)}}{% endfor %}],
+    {% else  %}
+        ["x"{% for i in range(jinja_max(TABLEDATA[0]|length,TABLEDATA[3]|length)+1) %},{{i*100.0/(jinja_max(TABLEDATA[0]|length,TABLEDATA[3]|length))}}{% endfor %}],
+    {% endif %}
 	{% for row in TABLEDATA %}
 	[{% for item in row %}{% if item==row[0] %} "{{item}}",{% else %}{{item}},{% endif %}{% endfor %}],
 	{% endfor %}
@@ -25,7 +35,7 @@ var chart = c3.generate({
             'QUEUE(ns)@client': '#D62728',
             'EXEC(ns)@client': '#9467BD',
             'RPC.CLIENT(ns)@client': '#8C564B',
-            "AIO.LATENCY(ns)": '#00FF00',
+            'AIO.LATENCY(ns)': '#00FF00',
         },
     },
     subchart: {
