@@ -35,7 +35,7 @@ var chart = c3.generate({
 
 function updateData(a)
 {
-	$.get("perValue2?task_code={{TASK_CODE}}", function(data, status){
+	$.get("/api/value?task_code={{TASK_CODE}}", function(data, status){
 	    var message = JSON.parse(data);
 	    var arr = [0,0,0,0,0,0];
 	    for (var i = 0; i < message.data.length; i++) {

@@ -110,13 +110,13 @@ class BaseHandler(webapp2.RequestHandler):
         params['SHARER_LIST'] = sharer_list
 
 #webapp2 handlers
-class mainHandler(BaseHandler):
+class PageMainHandler(BaseHandler):
     def get(self):
         params = {}
         params['IFMETA'] = 'meta' in Native.dsn_cli_run('engine')
         self.render_template('main.html',params)
 
-class tableHandler(BaseHandler):
+class PageTableHandler(BaseHandler):
     def get(self):
         queryRes = ast.literal_eval(Native.dsn_cli_run('pq table'))
         curr_percent = self.request.get('curr_percent')
@@ -128,7 +128,7 @@ class tableHandler(BaseHandler):
         }
         self.render_template('table.html',params)
 
-class perValue1Handler(BaseHandler):
+class PageSampleHandler(BaseHandler):
     def get(self):
         params = {}
         task_code = self.request.get('task_code')
@@ -140,7 +140,7 @@ class perValue1Handler(BaseHandler):
         remote_queryRes = []
         if remote_address != '':
             params['REMOTE_ADDRESS'] = remote_address
-            remote_queryRes = list(ast.literal_eval(urllib2.urlopen("http://"+remote_address+"/remoteCounterSample?task_code="+task_code).read()))
+            remote_queryRes = list(ast.literal_eval(urllib2.urlopen("http://"+remote_address+"/api/remoteCounterSample?task_code="+task_code).read()))
             
         queryRes = list(ast.literal_eval(Native.dsn_cli_run('pq counter_sample '+task_code)))
         xtitles = []
@@ -156,15 +156,15 @@ class perValue1Handler(BaseHandler):
             tabledata = queryRes[1]
             xtitles = queryRes[0]
 
-        params['PAGE'] = 'perValue1.html'
+        params['PAGE'] = 'sample.html'
         params['XTITLES'] = xtitles
         params['XTITLES2'] = xtitles2
         params['REMOTE_MODE'] = remote_mode
         params['TABLEDATA'] = tabledata
         params['COMPAREBUTTON'] = 'no'
-        self.render_template('perValue1.html',params)
+        self.render_template('sample.html',params)
 
-class perValue2Handler(BaseHandler):
+class PageValueHandler(BaseHandler):
     def get(self):
         params = {}
         task_code = self.request.get('task_code')
@@ -172,12 +172,12 @@ class perValue2Handler(BaseHandler):
             task_code = 'RPC_NFS_COPY'
 
         queryRes =  ast.literal_eval(Native.dsn_cli_run('pq counter_realtime '+task_code))
-        params['PAGE'] = 'perValue2.html'
+        params['PAGE'] = 'value.html'
         params['TABLEDATA'] = queryRes['data']
         self.geneRelate(task_code,params)
 
-        self.render_template('perValue2.html',params)    
-class perValue3Handler(BaseHandler):
+        self.render_template('value.html',params)    
+class PageBarHandler(BaseHandler):
     def get(self):
         params = {}
         task_code = self.request.get('task_code')
@@ -198,7 +198,7 @@ class perValue3Handler(BaseHandler):
         remote_queryRes = []
         if remote_address != '':
             params['REMOTE_ADDRESS'] = remote_address
-            remote_queryRes = list(ast.literal_eval(urllib2.urlopen("http://"+remote_address+"/remoteCounterCalc?task_code="+task_code).read()))
+            remote_queryRes = list(ast.literal_eval(urllib2.urlopen("http://"+remote_address+"/api/remoteCounterCalc?task_code="+task_code).read()))
         
             if (queryRes[0]==0 and queryRes[1]==0 and queryRes[2]==0):
                 queryRes[0] = remote_queryRes[0]
@@ -237,13 +237,13 @@ class perValue3Handler(BaseHandler):
             params['IFCOMPARE'] = 'yes'
             params['COMPARE_LIST'] = compare_list
         
-        params['PAGE'] = 'perValue3.html'
+        params['PAGE'] = 'bar.html'
         params['TABLEDATA'] = tabledata
         params['COMPAREBUTTON'] = 'yes'
 
-        self.render_template('perValue3.html',params)
+        self.render_template('bar.html',params)
 
-class perValue5Handler(BaseHandler):
+class PageQueueHandler(BaseHandler):
     def get(self):
         params = {}
         queryRes = json.loads(Native.dsn_cli_run('system.queue'))
@@ -255,30 +255,18 @@ class perValue5Handler(BaseHandler):
         query_list = sorted(query_list, key=lambda queue: queue['queue_num'],reverse=True)[:8]
         params['QUEUE_LIST'] = map((lambda queue: queue['queue_name']),query_list)
         params['TABLEDATA'] = map((lambda queue: queue['queue_num']),query_list)
-        self.render_template('perValue5.html',params)
+        self.render_template('queue.html',params)
 
-class consoleCliHandler(BaseHandler):
+class PageCliHandler(BaseHandler):
     def get(self):
-        self.render_template('consoleCli.html')
+        self.render_template('cli.html')
 
-class execCliHandler(BaseHandler):
+class PageBashHandler(BaseHandler):
     def get(self):
-        command = self.request.get('command');
-        queryRes = Native.dsn_cli_run(command)
-        self.response.write(queryRes)
+        self.render_template('bash.html')
 
-class consoleBashHandler(BaseHandler):
-    def get(self):
-        self.render_template('consoleBash.html')
 
-class execBashHandler(BaseHandler):
-    def get(self):
-        command = self.request.get('command');
-        queryRes = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read()
-        print queryRes
-        self.response.write(queryRes)
-
-class editorHandler(BaseHandler):
+class PageEditorHandler(BaseHandler):
     def get(self):
         params = {}
         dir = os.getcwd()
@@ -319,19 +307,19 @@ class editorHandler(BaseHandler):
         else:
             self.response.write("No file opened!")
 
-class configureHandler(BaseHandler):
+class PageConfigureHandler(BaseHandler):
     def get(self):
         params = {}
         queryRes = Native.dsn_cli_run('config-dump')
         params['CONTENT'] = queryRes 
         self.render_template('configure.html',params)
 
-class selectDisplayHandler(BaseHandler):
+class PageSelectionHandler(BaseHandler):
     def get(self):
         params = {}
         queryRes = ast.literal_eval(Native.dsn_cli_run('counter.list'))
         params['COUNTER_LIST'] = queryRes 
-        self.render_template('selectDisplay.html',params)
+        self.render_template('selection.html',params)
 
     def post(self):
         counter_list = json.loads(self.request.get('counter_list'))
@@ -349,7 +337,7 @@ class selectDisplayHandler(BaseHandler):
         queryRes += ']}'
         self.response.write(queryRes)
 
-class fileHandler(BaseHandler):
+class PageFileViewHandler(BaseHandler):
     def get(self):
         params = {}
         dir = os.path.dirname(os.getcwd()+"/")
@@ -367,7 +355,7 @@ class fileHandler(BaseHandler):
         params['WORKING_DIR'] = working_dir
         params['DIR_LIST'] = dir_list
         
-        self.render_template('file.html',params)
+        self.render_template('fileview.html',params)
     def post(self):
         params = {}
         dir = os.path.dirname(os.getcwd()+"/")
@@ -396,7 +384,7 @@ class fileHandler(BaseHandler):
         params['WORKING_DIR'] = working_dir
         params['DIR_LIST'] = dir_list
 
-        self.render_template('file.html',params)
+        self.render_template('fileview.html',params)
 '''
 class clusterinfoHandler(BaseHandler):
     def get(self):
@@ -415,8 +403,19 @@ class clusterinfoHandler(BaseHandler):
         self.render_template('clusterinfo.html',params)
 '''
 
+class ApiCliHandler(BaseHandler):
+    def get(self):
+        command = self.request.get('command');
+        queryRes = Native.dsn_cli_run(command)
+        self.response.write(queryRes)
 
-class perValue2QueryHandler(BaseHandler):
+class ApiBashHandler(BaseHandler):
+    def get(self):
+        command = self.request.get('command');
+        queryRes = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read()
+        self.response.write(queryRes)
+
+class ApiValueHandler(BaseHandler):
     def get(self):
         task_code = self.request.get('task_code')
         if task_code=='':
@@ -424,7 +423,7 @@ class perValue2QueryHandler(BaseHandler):
         queryRes = Native.dsn_cli_run('pq counter_realtime '+task_code)
         self.response.write(queryRes)
 
-class psutilQueryHandler(BaseHandler):
+class ApiPsutilHandler(BaseHandler):
     def get(self):
         queryRes = {}
         queryRes['cpu'] = psutil.cpu_percent(interval=1);
@@ -434,7 +433,7 @@ class psutilQueryHandler(BaseHandler):
         queryRes['networkio'] = psutil.net_io_counters()
         self.response.write(json.dumps(queryRes))
 
-class replicaQueryHandler(BaseHandler):
+class ApiReplicaInfoHandler(BaseHandler):
     def get(self):
         queryList = []
         for nodeinfo in Native.dsn_cli_run('engine').split('\n'):
@@ -445,12 +444,12 @@ class replicaQueryHandler(BaseHandler):
         queryRes = '[' + ','.join(queryList) + ']'
         self.response.write(queryRes)
 
-class remoteCounterSampleQueryHandler(BaseHandler):
+class ApiRemoteCounterSampleHandler(BaseHandler):
     def get(self):
         task_code = self.request.get('task_code')
         self.response.write(Native.dsn_cli_run('pq counter_sample '+task_code))
 
-class remoteCounterCalcQueryHandler(BaseHandler):
+class ApiRemoteCounterCalcHandler(BaseHandler):
     def get(self):
         task_code = self.request.get('task_code')
         curr_percent = self.request.get('curr_percent')
@@ -459,27 +458,29 @@ class remoteCounterCalcQueryHandler(BaseHandler):
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/static")
     web_app = webapp2.WSGIApplication([
-    ('/', mainHandler),
-    ('/main.html', mainHandler),
-    ('/table.html', tableHandler),
-    ('/perValue1.html', perValue1Handler),
-    ('/perValue2.html', perValue2Handler),
-    ('/perValue3.html', perValue3Handler),
-    ('/perValue5.html', perValue5Handler),
-    ('/consoleCli.html', consoleCliHandler),
-    ('/execCli.html', execCliHandler),
-    ('/consoleBash.html', consoleBashHandler),
-    ('/execBash.html', execBashHandler),
-    ('/editor.html', editorHandler),
-    ('/configure.html', configureHandler),
-    ('/selectDisplay.html', selectDisplayHandler),
-    ('/file.html', fileHandler),
+    ('/', PageMainHandler),
+    ('/main.html', PageMainHandler),
+    ('/table.html', PageTableHandler),
+    ('/sample.html', PageSampleHandler),
+    ('/value.html', PageValueHandler),
+    ('/bar.html', PageBarHandler),
+    ('/queue.html', PageQueueHandler),
+    ('/cli.html', PageCliHandler),
+    ('/bash.html', PageBashHandler),
+    ('/editor.html', PageEditorHandler),
+    ('/configure.html', PageConfigureHandler),
+    ('/selection.html', PageSelectionHandler),
+    ('/fileview.html', PageFileViewHandler),
 #    ('/clusterinfo.html', clusterinfoHandler),
-    ('/perValue2', perValue2QueryHandler),
-    ('/psutil', psutilQueryHandler),
-    ('/replicainfo', replicaQueryHandler),
-    ('/remoteCounterSample', remoteCounterSampleQueryHandler),
-    ('/remoteCounterCalc', remoteCounterCalcQueryHandler),
+
+    ('/api/cli', ApiCliHandler),
+    ('/api/bash', ApiBashHandler),
+    ('/api/value', ApiValueHandler),
+    ('/api/psutil', ApiPsutilHandler),
+    ('/api/replicainfo', ApiReplicaInfoHandler),
+    ('/api/remoteCounterSample', ApiRemoteCounterSampleHandler),
+    ('/api/remoteCounterCalc', ApiRemoteCounterCalcHandler),
+
     ('/app/(.+)', AppStaticFileHandler)
 ], debug=True)
 

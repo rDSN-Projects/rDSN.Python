@@ -13,7 +13,7 @@ File listing:
 </ol>
 
 <form name="fileForm" method="post" onsubmit="return validateForm()" enctype="multipart/form-data">
-    Upload files to : app{% for dir in DIR_LIST %}/{{dir.name}}{% endfor %}
+    Upload files to : app/{% for dir in DIR_LIST %}{{dir.name}}/{% endfor %}
     <input type="text" name="file_name">
     <input type="file" name="fileToUpload" id="fileToUpload">
     <input type="submit" value="Upload" name="submit">

@@ -92,16 +92,16 @@ TimeOutTour.init();
 		<ul class="nav navbar-nav">
 			<li><a href="main.html" data-toggle="tooltip" title="A overview of the whole system">Overview</a></li>
 			<li><a href="table.html" data-toggle="tooltip" title="A table showing all counter info for all task codes">Table</a></li>
-			<li><a href="perValue1.html?task_code={{TASK_CODE}}" data-toggle="tooltip" title="A scatter plot showing counter sample data">Latency</a></li>
-			<li><a href="perValue2.html?task_code={{TASK_CODE}}" data-toggle="tooltip" title="A real-time line plot showing counter sample data">Realtime</a></li>
-			<li><a href="perValue3.html?task_code={{TASK_CODE}}" data-toggle="tooltip" title="A bar plot showing latency time structure">Latency Breakdown</a></li>
-			<li><a href="perValue5.html" data-toggle="tooltip" title="A bar plot showing all queues sorted by task pending number">Queue</a></li>
-			<li><a href="consoleCli.html" data-toggle="tooltip" title="A query interface, type h for more info">Cli</a></li>
-			<li><a href="consoleBash.html" data-toggle="tooltip" title="A bash interface">Bash</a></li>
+			<li><a href="sample.html?task_code={{TASK_CODE}}" data-toggle="tooltip" title="A scatter plot showing counter sample data">Sample</a></li>
+			<li><a href="value.html?task_code={{TASK_CODE}}" data-toggle="tooltip" title="A real-time line plot showing counter sample data">Value</a></li>
+			<li><a href="bar.html?task_code={{TASK_CODE}}" data-toggle="tooltip" title="A bar plot showing latency time structure">Breakdown</a></li>
+			<li><a href="queue.html" data-toggle="tooltip" title="A bar plot showing all queues sorted by task pending number">Queue</a></li>
+			<li><a href="cli.html" data-toggle="tooltip" title="A query interface, type h for more info">Cli</a></li>
+			<li><a href="bash.html" data-toggle="tooltip" title="A bash interface">Bash</a></li>
 			<li><a href="editor.html" data-toggle="tooltip" title="An online editor for editing files">Vim</a></li>
 			<li><a href="configure.html" data-toggle="tooltip" title="Show all configuration with descriptions">Configuration</a></li>
-			<li><a href="selectDisplay.html" data-toggle="tooltip" title="Show a dynamic graph with selected counters">selectDisplay</a></li>
-			<li><a href="file.html" data-toggle="tooltip" title="Show a dynamic graph with selected counters">fileView</a></li>
+			<li><a href="selection.html" data-toggle="tooltip" title="Show a dynamic graph with selected counters">Selection</a></li>
+			<li><a href="fileview.html" data-toggle="tooltip" title="Show a dynamic graph with selected counters">fileView</a></li>
             {% if IFMETA== True and False%}
 			<li><a href="clusterinfo.html" data-toggle="tooltip" title="Show cluster info">clusterinfo</a></li>
             {% endif %}

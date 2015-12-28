@@ -156,7 +156,7 @@ var checkedItems = {}, counter = 0;
 
 function updateData(a)
 {
-    $.post("selectDisplay.html", {counter_list: JSON.stringify(checkedItems, null, '\t')}, function(result){
+    $.post("selection.html", {counter_list: JSON.stringify(checkedItems, null, '\t')}, function(result){
             latestdata = [['x', a]]
             parsed_data = JSON.parse(result)
             for (i=0;i<counter;++i){

@@ -8,7 +8,7 @@
     $('#term_demo').terminal(function(command, term) {
         if (command !== '') {
 	    var xmlHttp = new XMLHttpRequest();
-    	    xmlHttp.open( "GET", "execCli.html?command="+command, false ); // false for synchronous request
+    	    xmlHttp.open( "GET", "/api/cli?command="+command, false ); // false for synchronous request
             xmlHttp.send( null );
             var result = xmlHttp.responseText; 
             term.echo(String(result));

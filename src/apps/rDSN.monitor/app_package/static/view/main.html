@@ -105,7 +105,7 @@ var config1 = liquidFillGaugeDefaultSettings();
     
 NewValue();
     function NewValue(){
-$.get("psutil", function(data, status){
+$.get("/api/psutil", function(data, status){
 	var message = JSON.parse(data);
     gauge1.update(message.cpu);
     gauge2.update(message.memory);
