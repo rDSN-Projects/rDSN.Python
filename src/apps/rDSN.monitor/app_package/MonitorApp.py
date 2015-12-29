@@ -325,12 +325,17 @@ class PageSelectionHandler(BaseHandler):
         counter_list = json.loads(self.request.get('counter_list'))
         queryRes = '{"time":"'+Native.dsn_cli_run('pq time')+'","data":['
         first_flag=0;
+
+        queryType = self.request.get('queryType')
+        if queryType == '':
+            queryType = 'sample'
+
         for counter in counter_list:
             if first_flag:
                 queryRes += ','
             else:
                 first_flag = 1
-            res = Native.dsn_cli_run('counter.sample '+counter_list[counter])
+            res = Native.dsn_cli_run('counter.'+queryType+' '+counter_list[counter])
             if res=='':
                 res=0
             queryRes += res

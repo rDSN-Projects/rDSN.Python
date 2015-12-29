@@ -2,6 +2,14 @@
 {% block body %}
 
 <button class="btn btn-primary dropdown-toggle" data-toggle="collapse" data-target="#call">Select counters</button>
+<div class="dropdown">
+<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"  data-toggle="tooltip" title="Choose query type">
+    Choose Type ({% if queryType != '' %}{{queryType}}{% else %}sample{% endif %}) <span class="caret"></span></button>
+	<ul class="dropdown-menu" role="menu">
+        <li><a href="?queryType=sample">sample</a></li>
+		<li><a href="?queryType=value">value</a></li>
+	</ul>
+</div>
 
 <script>
 $(function () {
@@ -122,9 +130,11 @@ $('#get-checked-data').on('click', function(event) {
     <div id="call" class="collapse">
         <div class="well" style="max-height: 300px;overflow: auto;">
             <ul id="check-list-box" class="list-group checked-list-box">
-                {% for section in COUNTER_LIST.items() %}
-                    {% for counter in section[1] %}
-                    <li class="list-group-item">{{section[0]}} {{counter}}</li>
+                {% for app in COUNTER_LIST.items() %}
+                    {% for section in app[1] %}
+                        {% for counter in app[1][section] %}
+                            <li class="list-group-item">{{app[0]}}*{{section}}*{{counter}}</li>
+                        {% endfor %}
                     {% endfor %}
                 {% endfor %}
             </ul>
