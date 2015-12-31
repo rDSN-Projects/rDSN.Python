@@ -335,7 +335,7 @@ class PageSelectionHandler(BaseHandler):
                 queryRes += ','
             else:
                 first_flag = 1
-            res = Native.dsn_cli_run('counter.'+queryType+' '+counter_list[counter])
+            res = Native.dsn_cli_run('counter.'+queryType+'i '+counter_list[counter])
             if res=='':
                 res=0
             queryRes += res
@@ -390,6 +390,11 @@ class PageFileViewHandler(BaseHandler):
         params['DIR_LIST'] = dir_list
 
         self.render_template('fileview.html',params)
+
+class PageAnalyzerHandler(BaseHandler):
+    def get(self):
+        self.render_template('analyzer.html')
+
 '''
 class clusterinfoHandler(BaseHandler):
     def get(self):
@@ -460,6 +465,40 @@ class ApiRemoteCounterCalcHandler(BaseHandler):
         curr_percent = self.request.get('curr_percent')
         self.response.write(Native.dsn_cli_run('pq counter_calc '+task_code+' '+curr_percent if curr_percent!='50' else ''))
 
+class ApiSaveViewHandler(BaseHandler):
+    def post(self):
+        name = self.request.get('name')
+        author = self.request.get('author')
+        description = self.request.get('description')
+        counterList = self.request.get('counterList')
+        graphtype = self.request.get('graphtype')
+        interval = self.request.get('interval')
+
+        viewFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/view/'+ name, 'w')
+
+        viewFile.write(author+'\n')
+        viewFile.write(description+'\n')
+        viewFile.write(counterList+'\n')
+        viewFile.write(graphtype+'\n')
+        viewFile.write(interval+'\n')
+
+        viewFile.close()
+        self.response.write('view "'+ name +'" is successfully saved!')
+
+class ApiLoadViewHandler(BaseHandler):
+    def post(self):
+        name = self.request.get('name')
+
+        viewFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/view/'+ name, 'r')
+
+        author = viewFile.readline()
+        counterList = viewFile.readline()
+        graphtype = viewFile.readline()
+        interval = viewFile.readline()
+
+        viewFile.close()
+        self.response.write('view "'+ name +'" is successfully saved!')
+
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/static")
     web_app = webapp2.WSGIApplication([
@@ -476,6 +515,7 @@ def start_http_server(portNum):
     ('/configure.html', PageConfigureHandler),
     ('/selection.html', PageSelectionHandler),
     ('/fileview.html', PageFileViewHandler),
+    ('/analyzer.html', PageAnalyzerHandler),
 #    ('/clusterinfo.html', clusterinfoHandler),
 
     ('/api/cli', ApiCliHandler),
@@ -485,6 +525,8 @@ def start_http_server(portNum):
     ('/api/replicainfo', ApiReplicaInfoHandler),
     ('/api/remoteCounterSample', ApiRemoteCounterSampleHandler),
     ('/api/remoteCounterCalc', ApiRemoteCounterCalcHandler),
+    ('/api/saveview', ApiSaveViewHandler),
+    ('/api/loadview', ApiLoadViewHandler),
 
     ('/app/(.+)', AppStaticFileHandler)
 ], debug=True)
