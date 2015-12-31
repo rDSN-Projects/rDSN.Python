@@ -82,17 +82,19 @@ init();
 
 
 $('#get-checked-data').on('click', function(event) {
-        checkedItems = {};
+        checkedItemsText = {};
+        checkedItemsIndex = {};
         counter = 0;
         event.preventDefault(); 
         $("#check-list-box li.active").each(function(idx, li) {
-            checkedItems[counter] = $(li).text();
+            checkedItemsText[counter] = $(li).text();
+            checkedItemsIndex[counter] = $(li).attr('index');
             counter++;
         });
         basedata = [['x', '1', '2', '3','4','5','6','7','8','9','10', '11', '12', '13','14','15','16','17','18','19'],];
         for (i=0;i<counter;++i)
         {
-            basedata.push([checkedItems[i],0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
+            basedata.push([checkedItemsText[i],0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
         }
         chart = c3.generate({
             data: {
@@ -133,7 +135,7 @@ $('#get-checked-data').on('click', function(event) {
                 {% for app in COUNTER_LIST.items() %}
                     {% for section in app[1] %}
                         {% for counter in app[1][section] %}
-                            <li class="list-group-item">{{app[0]}}*{{section}}*{{counter}}</li>
+                            <li class="list-group-item" index="{{counter['index']}}">{{app[0]}}*{{section}}*{{counter['name']}}</li>
                         {% endfor %}
                     {% endfor %}
                 {% endfor %}
@@ -162,15 +164,15 @@ var chart = c3.generate({
         }
     }
 });
-var checkedItems = {}, counter = 0;
+var checkedItemsIndex = {}, checkedItemsText={}, counter = 0;
 
 function updateData(a)
 {
-    $.post("selection.html", {counter_list: JSON.stringify(checkedItems, null, '\t')}, function(result){
+    $.post("selection.html", {counter_list: JSON.stringify(checkedItemsIndex, null, '\t')}, function(result){
             latestdata = [['x', a]]
             parsed_data = JSON.parse(result)
             for (i=0;i<counter;++i){
-                latestdata.push([checkedItems[i],parsed_data.data[i]]);
+                latestdata.push([checkedItemsText[i],parsed_data.data[i]]);
             }
             time = parsed_data.time;
 
