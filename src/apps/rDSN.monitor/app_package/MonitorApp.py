@@ -418,6 +418,10 @@ class ApiCliHandler(BaseHandler):
         command = self.request.get('command');
         queryRes = Native.dsn_cli_run(command)
         self.response.write(queryRes)
+    def post(self):
+        command = self.request.get('command');
+        queryRes = Native.dsn_cli_run(command)
+        self.response.write(queryRes)
 
 class ApiBashHandler(BaseHandler):
     def get(self):
@@ -483,21 +487,37 @@ class ApiSaveViewHandler(BaseHandler):
         viewFile.write(interval+'\n')
 
         viewFile.close()
+
         self.response.write('view "'+ name +'" is successfully saved!')
 
 class ApiLoadViewHandler(BaseHandler):
-    def post(self):
+    def post(self): 
+        viewDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/view/'
+        viewFileList = [f for f in os.listdir(viewDir) if os.path.isfile(os.path.join(viewDir,f))]
+        viewList = []
+        for name in viewFileList:
+            viewFile = open(os.path.join(viewDir,name), 'r')
+            author = viewFile.readline()
+            description = viewFile.readline()
+            counterList = viewFile.readline()
+            graphtype = viewFile.readline()
+            interval = viewFile.readline()
+            viewFile.close()
+            viewList.append({'name':name,'author':author,'description':description,'counterList':counterList,'graphtype':graphtype,'interval':interval})
+        self.SendJson(viewList)
+
+class ApiDelViewHandler(BaseHandler):
+    def post(self): 
         name = self.request.get('name')
+        print name
+        viewDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/view/'
+        viewFileList = [f for f in os.listdir(viewDir) if os.path.isfile(os.path.join(viewDir,f))]
+        if name in viewFileList:
+            os.remove(os.path.join(viewDir,name))
+            self.response.write('success')
+        else:
+            self.response.write('fail')
 
-        viewFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/view/'+ name, 'r')
-
-        author = viewFile.readline()
-        counterList = viewFile.readline()
-        graphtype = viewFile.readline()
-        interval = viewFile.readline()
-
-        viewFile.close()
-        self.response.write('view "'+ name +'" is successfully saved!')
 
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/static")
@@ -525,8 +545,9 @@ def start_http_server(portNum):
     ('/api/replicainfo', ApiReplicaInfoHandler),
     ('/api/remoteCounterSample', ApiRemoteCounterSampleHandler),
     ('/api/remoteCounterCalc', ApiRemoteCounterCalcHandler),
-    ('/api/saveview', ApiSaveViewHandler),
-    ('/api/loadview', ApiLoadViewHandler),
+    ('/api/view/save', ApiSaveViewHandler),
+    ('/api/view/load', ApiLoadViewHandler),
+    ('/api/view/del', ApiDelViewHandler),
 
     ('/app/(.+)', AppStaticFileHandler)
 ], debug=True)

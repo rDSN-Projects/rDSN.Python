@@ -162,9 +162,14 @@ function SaveView() {
         }
     }
     var description = $('textarea#description').val();
-    alert(description);
+
+    if ($("#viewname").val()=="")
+    {
+        $('result-saveview').html("Error: View name must be specified");
+        return;
+    }
     //var interval = ""
-    $.post("/api/saveview", {
+    $.post("/api/view/save", {
             name: $("#viewname").val(),
             author: $("#author").val(),
             counterList: counterList,
@@ -178,9 +183,78 @@ function SaveView() {
 };
 
 function LoadView() {
-    $.post("/api/loadview", {
-        }, function(result){
-            $('result-saveview').html(result);
+    $.post("/api/view/load", {
+        }, function(data){
+            var tableHTML = ""; 
+
+            var message = JSON.parse(data);
+	        for (var i = 0; i < message.length; i++) {
+                tableHTML = tableHTML + '<tr id=' + message[i].name + '>' 
+                + '<td>' + message[i].name + '</td>' 
+                + '<td>' + message[i].description + '</td>'
+                + '<td>' + message[i].author + '</td>'
+                + '<td><span class="glyphicon glyphicon-play"></span></td>'
+                + '<td><span class="glyphicon glyphicon-import"></span></td>'
+                + '<td><span class="glyphicon glyphicon-remove" onclick="DelView(\'' + message[i].name + '\');"></span></td>'
+                + '</tr>';
+            }
+            $("#viewList tbody > tr").empty();
+            $("#viewList tbody").append(tableHTML);
+            $('#viewlist').modal('show');
         }
     );
+};
+
+function DelView(name) {
+    $.post("/api/view/del", {
+        name:name
+        }, function(data){
+            if (data == 'success')
+            {
+                $('#viewList tr#'+name).remove();
+            }
+        }
+    );
+};
+
+function updateCounterList() {
+};
+
+var counterAll;
+
+function Machine2App(machine) {
+    $.post("http://" + machine + "/api/cli", {
+        command: "counter.list"
+        }, function(data){
+            var message = JSON.parse(data);
+            counterAll = message;
+            $(".list-group-item.app").remove();
+            for (app in message) {
+                $("#appList").append('<li class="list-group-item app"><a onClick="App2Section(\'' + machine + '\',\'' + app + '\');">' + app + '</a></li>');
+            }
+        }
+    );
+};
+
+function App2Section(machine, app) {
+    $(".list-group-item.section").remove();
+    for (section in counterAll[app]) {
+        $("#sectionList").append('<li class="list-group-item section"><a onClick="Section2Counter(\'' + machine + '\',\'' + app + '\',\'' + section + '\');">' + section + '</a></li>');
+    }
+};
+
+function Section2Counter(machine, app, section) {
+    $(".list-group-item.counter").remove();
+    for (counter in counterAll[app][section]) {
+        $("#counterList").append('<li class="list-group-item counter"><a onClick="Counter2List(\'' + machine + '\',\'' + app + '\',\'' + section + '\',\'' + counterAll[app][section][counter].name + '\');">' + counterAll[app][section][counter].name + '</a></li>');
+    }
+};
+
+function Counter2List(machine, app, section, counter) {
+    $(".list-group.remove-list-box").append('<li class="list-group-item">' + machine + ' * ' + app + ' * ' + section + ' * ' + counter+ '</li>');
+};
+
+function List2List() {
+    $(".list-group.remove-list-box li").remove();
+    
 };
