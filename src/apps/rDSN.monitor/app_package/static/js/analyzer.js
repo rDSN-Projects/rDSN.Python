@@ -143,7 +143,7 @@ $(function () {
     });
 });
 
-var counterList = {}
+var counterList = [], counterSelected = []
 function SaveView() {
     var graphtype = $('input[name=graphtype]:checked').val();
     if (graphtype==undefined)
@@ -155,7 +155,7 @@ function SaveView() {
     if (interval=='')
     {
         interval = $('input[name=interval]:checked').val();
-        if (interval==undefined)
+        if (interval==undefined && graphtype!= 'bar')
         {
             $('result-saveview').html("Error: No update interval chosen");
             return;
@@ -217,9 +217,6 @@ function DelView(name) {
     );
 };
 
-function updateCounterList() {
-};
-
 var counterAll;
 
 function Machine2App(machine) {
@@ -246,15 +243,53 @@ function App2Section(machine, app) {
 function Section2Counter(machine, app, section) {
     $(".list-group-item.counter").remove();
     for (counter in counterAll[app][section]) {
-        $("#counterList").append('<li class="list-group-item counter"><a onClick="Counter2List(\'' + machine + '\',\'' + app + '\',\'' + section + '\',\'' + counterAll[app][section][counter].name + '\');">' + counterAll[app][section][counter].name + '</a></li>');
+        $("#counterList").append('<li class="list-group-item counter"><a onClick="Counter2List(\'' + machine + '\',\'' + app + '\',\'' + section + '\',\'' + counterAll[app][section][counter].name + '\',' + counterAll[app][section][counter].index + ');">' + counterAll[app][section][counter].name + '</a></li>');
     }
 };
 
-function Counter2List(machine, app, section, counter) {
-    $(".list-group.remove-list-box").append('<li class="list-group-item">' + machine + ' * ' + app + ' * ' + section + ' * ' + counter+ '</li>');
+function Counter2List(machine, app, section, counter, index) {
+    $(".list-group.remove-list-box").append('<li class="list-group-item" id="' + machine.replace(':','_') + index + '"><span class="glyphicon glyphicon-remove" onclick="$(\'#' + machine.replace(':','_') + index + '\').remove();"></span>' + machine + ' * ' + app + ' * ' + section + ' * ' + counter+ '</li>');
+    counterSelected.push({machine: machine, name: machine + ' * ' + app + ' * ' + section + ' * ' + counter, index:index});
 };
 
 function List2List() {
     $(".list-group.remove-list-box li").remove();
+    for (counter in counterSelected) {
+        $("#counterListAll").append('<li class="list-group-item" id="' +  counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '"><a href="#">' + counterSelected[counter].name + '</a> <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '\').remove();"></span></li>');
+        counterList.push({machine: counterSelected[counter].machine, name: counterSelected[counter].name, index: counterSelected[counter].index});
+    }
+    counterSelected = []
+};
+
+function RunPerformanceView() {
+    //window.open('view.html?graphtype=bar&counterList=[{"name":%221.0%4010.172.96.42%3A34801.commit(%23%2Fs)%22,"index":2430951489537,"machine":"localhost:8080"},{"name":%221.0%4010.172.96.42%3A34801.decree%23%22,"index":2439541424129,"machine":"localhost:8080"}]');
+    var url = "view.html?"
+
+    var graphtype = $('input[name=graphtype]:checked').val();
+    if (graphtype==undefined)
+    {
+        $('result-runview').html("Error: No graph type chosen");
+        $('#runviewres').modal('show');
+        return;
+    }
+    url = url + 'graphtype=' + graphtype;
+
+    var interval = $('input[name=interval-num]').val();
+    if (graphtype != 'bar')
+    {
+        if (interval=='')
+        {
+            interval = $('input[name=interval]:checked').val();
+            if (interval==undefined)
+            {
+                $('result-runview').html("Error: No update interval chosen");
+                $('#runviewres').modal('show');
+                return;
+            }
+        }
+        url = url + '&interval=' + interval;
+    }
+    url = url + '&counterList=' + encodeURIComponent(JSON.stringify(counterList));
     
+    window.open(url);
 };

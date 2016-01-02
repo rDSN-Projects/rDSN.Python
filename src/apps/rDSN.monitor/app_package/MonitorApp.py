@@ -395,6 +395,11 @@ class PageAnalyzerHandler(BaseHandler):
     def get(self):
         self.render_template('analyzer.html')
 
+
+class PageViewHandler(BaseHandler):
+    def get(self):
+        self.render_template('view.html')
+
 '''
 class clusterinfoHandler(BaseHandler):
     def get(self):
@@ -537,6 +542,7 @@ def start_http_server(portNum):
     ('/fileview.html', PageFileViewHandler),
     ('/analyzer.html', PageAnalyzerHandler),
 #    ('/clusterinfo.html', clusterinfoHandler),
+    ('/view.html', PageViewHandler),
 
     ('/api/cli', ApiCliHandler),
     ('/api/bash', ApiBashHandler),
