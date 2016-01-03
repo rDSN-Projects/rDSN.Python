@@ -523,6 +523,13 @@ class ApiDelViewHandler(BaseHandler):
         else:
             self.response.write('fail')
 
+class ApiBatchCliHandler(BaseHandler):
+    def post(self):
+        commands = json.loads(self.request.get('commands'));
+        queryRes = []
+        for command in commands:
+            queryRes.append(Native.dsn_cli_run(command))
+        self.SendJson(queryRes)
 
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/static")
@@ -554,6 +561,7 @@ def start_http_server(portNum):
     ('/api/view/save', ApiSaveViewHandler),
     ('/api/view/load', ApiLoadViewHandler),
     ('/api/view/del', ApiDelViewHandler),
+    ('/api/batchcli', ApiBatchCliHandler),
 
     ('/app/(.+)', AppStaticFileHandler)
 ], debug=True)

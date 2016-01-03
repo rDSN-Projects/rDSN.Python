@@ -32,7 +32,7 @@
 	<div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-1">
-            <button class="btn btn-success" onclick="LoadView()">Load view</button>
+            <button class="btn btn-success" onclick="LoadView()">Load View</button>
         </div>
         <div class="col-xs-1">
             <button class="btn btn-info" data-toggle="modal" data-target="#saveview" >Save View</button>
@@ -74,6 +74,9 @@
     </div>
 </div>
 
+<style>
+td { max-width:300px; word-wrap:break-word; }
+</style>
 <!-- ViewList Modal -->
 <div id="viewlist" class="modal fade" role="dialog">
   <div class="modal-dialog">
@@ -84,7 +87,7 @@
         <h4 class="modal-title">View List</h4>
       </div>
       <div class="modal-body">
-        <table class="table" id="viewList">
+        <table class="table table-striped" id="viewList">
         <thead>
         <tr>
             <th>Name</th>
@@ -123,9 +126,9 @@
             <div class="col-xs-3">
                 <h4 class="text-center">Machines</h3>
                 <div class="well" style="max-height: 300px;overflow: auto;">
-                    <ul class="list-group">
+                    <ul class="list-group" id="machinelist">
                         <li class="list-group-item"><a onClick="Machine2App('localhost:8080');">localhost:8080</a></li>
-                        <li class="list-group-item">(Add..)</li>
+                        <li class="list-group-item"><a onClick='AddMachine();'>(Add..)</a></li>
                     </ul>
                 </div>
             </div>

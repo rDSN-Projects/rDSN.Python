@@ -8,13 +8,17 @@ function getParameterByName(name) {
 var graphtype = getParameterByName('graphtype');
 if (graphtype=='sample' || graphtype=='value')
 {
-    realtimeDisplay(graphtype);   
+    var interval = getParameterByName('interval');
+    
+    realtimeDisplay(graphtype,interval);   
 }
 else if (graphtype=='bar')
 {
     barDisplay();   
 }
 
+
+var chart;
 function barDisplay(){
     var counterList = JSON.parse(getParameterByName('counterList'));
     var tabledata=[]
@@ -34,7 +38,7 @@ function barDisplay(){
         }
 
     $(document).ajaxComplete(function() {
-        var chart = c3.generate({
+        chart = c3.generate({
             /*size: {
               height: 720,
               },*/
@@ -77,33 +81,23 @@ function barDisplay(){
 
 }
 
-function realtimeDisplay(graphtype){
+function realtimeDisplay(graphtype,interval){
+    var basedata = [
+        ['x', '1', '2', '3','4','5','6','7','8','9','10', '11', '12', '13','14','15','16','17','18','19'],
+    ];
+    
     var counterList = JSON.parse(getParameterByName('counterList'));
     var tabledata=[]
     for (counter in counterList)
     {
-        var machine = counterList[counter]['machine'];
-        var index = counterList[counter]['index'];
         var name = counterList[counter]['name'];
-        (function(name){
-            $.post("http://" + machine + "/api/cli", {
-                command: "counter.valuei " + index
-            }, function(data){
-                tabledata.push([name, data]);
-            }
-            );
-        })(name);
+        basedata.push([name,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
     }
 
-    var basedata = [
-        ['x', '1', '2', '3','4','5','6','7','8','9','10', '11', '12', '13','14','15','16','17','18','19'],
-    ]
-    var latestdata=[['x', 1]]
-    var time='';
-    var chart = c3.generate({
+    chart = c3.generate({
         data: {
             x: 'x',
-            columns: basedata
+            columns:basedata
         },
         axis: {
             x: {
@@ -111,28 +105,46 @@ function realtimeDisplay(graphtype){
             }
         }
     });
-    var checkedItemsIndex = {}, checkedItemsText={}, counter = 0;
 
-    function updateData(a)
-    {
-        $.post("selection.html", {counter_list: JSON.stringify(checkedItemsIndex, null, '\t')}, function(result){
-            latestdata = [['x', a]]
-            parsed_data = JSON.parse(result)
-            for (i=0;i<counter;++i){
-                latestdata.push([checkedItemsText[i],parsed_data.data[i]]);
-            }
-        time = parsed_data.time;
+    updateData(20,counterList);
 
-        });
-        chart.flow({
-            columns: latestdata,
-            duration:1000,
-            done:function(){
-                setTimeout(function () {
-                    chart.xgrids.add([{value: a, text:time,class:'hoge'}]);
-                    updateData(a+1);
-
-                }, 0);}
-        });
-    }
 }
+
+function updateData(a,counterList)
+{
+    var ajaxcount=0;
+    var length = counterList.length;
+    var latestdata=[['x', 1]];
+    for (counter in counterList)
+    {
+        var machine = counterList[counter]['machine'];
+        var index = counterList[counter]['index'];
+        var name = counterList[counter]['name'];
+        (function(name){
+            $.post("http://" + machine + "/api/cli", {
+                command: "counter." + graphtype + "i " + index
+            }, function(data){
+                latestdata.push([name, data]);
+            }
+            );
+        })(name);
+    }
+    
+    $(document).ajaxComplete(function() {
+        ++ajaxcount;
+        if(ajaxcount==length)
+        {
+            chart.flow({
+                columns: latestdata,
+                duration:1000,
+                done:function(){
+                    setTimeout(function () {
+                        updateData(a+1, counterList);
+                    }, interval*1000);}
+            });
+        }
+    });
+}
+
+    
+
