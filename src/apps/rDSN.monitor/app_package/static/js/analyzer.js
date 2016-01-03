@@ -172,7 +172,7 @@ function SaveView() {
     $.post("/api/view/save", {
             name: $("#viewname").val(),
             author: $("#author").val(),
-            counterList: counterList,
+            counterList: JSON.stringify(counterList),
             description: description,
             graphtype: graphtype,
             interval: interval,
@@ -182,6 +182,7 @@ function SaveView() {
     );
 };
 
+var viewList = {}
 function LoadView() {
     $.post("/api/view/load", {
         }, function(data){
@@ -193,10 +194,12 @@ function LoadView() {
                 + '<td>' + message[i].name + '</td>' 
                 + '<td>' + message[i].description + '</td>'
                 + '<td>' + message[i].author + '</td>'
-                + '<td><span class="glyphicon glyphicon-play"></span></td>'
-                + '<td><span class="glyphicon glyphicon-import"></span></td>'
+                + '<td><span class="glyphicon glyphicon-play" onclick="PlayView(\'' + message[i].name + '\');"></span></td>'
+                + '<td><span class="glyphicon glyphicon-import" onclick="ImportView(\'' + message[i].name + '\');"></span></td>'
                 + '<td><span class="glyphicon glyphicon-remove" onclick="DelView(\'' + message[i].name + '\');"></span></td>'
                 + '</tr>';
+                viewList[message[i].name] = {counterList:message[i].counterList,graphtype:message[i].graphtype,interval:message[i].interval};
+                
             }
             $("#viewList tbody > tr").empty();
             $("#viewList tbody").append(tableHTML);
@@ -212,6 +215,7 @@ function DelView(name) {
             if (data == 'success')
             {
                 $('#viewList tr#'+name).remove();
+                delete viewList[name];
             }
         }
     );
@@ -255,7 +259,7 @@ function Counter2List(machine, app, section, counter, index) {
 function List2List() {
     $(".list-group.remove-list-box li").remove();
     for (counter in counterSelected) {
-        $("#counterListAll").append('<li class="list-group-item" id="' +  counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '"><a href="#">' + counterSelected[counter].name + '</a> <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '\').remove();"></span></li>');
+        $("#counterListAll").append('<li class="list-group-item counter-main" id="' +  counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '"><a href="#">' + counterSelected[counter].name + '</a> <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '\').remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterSelected[counter].machine + '\', name:\'' +  counterSelected[counter].name + '\', index:' + counterSelected[counter].index + '}),1)"></span></li>');
         counterList.push({machine: counterSelected[counter].machine, name: counterSelected[counter].name, index: counterSelected[counter].index});
     }
     counterSelected = []
@@ -293,3 +297,64 @@ function RunPerformanceView() {
     
     window.open(url);
 };
+
+
+
+function ImportView(viewname) {
+    $(".list-group-item.counter-main").remove();
+    var list = JSON.parse(viewList[viewname].counterList)
+    for (counter in list) {
+        var counterData = list[counter];
+        $("#counterListAll").append('<li class="list-group-item counter-main" id="' + counterData.machine.replace(':','_') + counterData.index + '"><a href="#">' + counterData.name + '</a> <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + counterData.machine.replace(':','_') + counterData.index + '\').remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterData.machine + '\', name:\'' + counterData.name + '\', index:' + counterData.index + '}),1)"></span></li>');
+        counterList.push({machine: counterData.machine, name: counterData.name, index: counterData.index});
+    }
+    $('input[name=graphtype][value=' + viewList[viewname].graphtype + ']').attr('checked', 'checked');
+
+    var interval = viewList[viewname].interval;
+    if (interval != undefined)
+    {
+        if (interval == 1 || interval == 5 || interval == 10 )
+        {
+            $('input[name=interval][value=' + interval + ']').attr('checked', 'checked');
+        }
+        else
+        {
+            $('input[name=interval-num]').val(interval);
+        }
+    }
+}
+
+function PlayView(viewname) {
+
+    var url = "view.html?"
+
+    var graphtype = viewList[viewname].graphtype;
+    if (graphtype==undefined)
+    {
+        $('result-runview').html("Error: No graph type chosen");
+        $('#runviewres').modal('show');
+        return;
+    }
+    url = url + 'graphtype=' + graphtype;
+
+    var interval = viewList[viewname].interval;
+    if (graphtype != 'bar')
+    {
+        if (interval=='')
+        {
+            interval = $('input[name=interval]:checked').val();
+            if (interval==undefined)
+            {
+                $('result-runview').html("Error: No update interval chosen");
+                $('#runviewres').modal('show');
+                return;
+            }
+        }
+        url = url + '&interval=' + interval;
+    }
+    url = url + '&counterList=' + encodeURIComponent(viewList[viewname].counterList);
+    
+    window.open(url);
+
+}
+

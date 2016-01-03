@@ -27,6 +27,7 @@
 
 <script src="js/analyzer.js"></script>
 
+<!-- Main panel -->
 <div class="container" style="margin-top:20px;">
 	<div class="row">
         <div class="col-xs-10"></div>
@@ -41,7 +42,7 @@
         <div class="col-xs-6">
             <h3 class="text-center">Counter List</h3>
             <div class="well" style="max-height: 500px;overflow: auto;">
-        		<ul class="list-group" id="counterListAll">
+        		<ul class="list-group counterListAll" id="counterListAll">
                     <li class="list-group-item" data-toggle="modal" data-target="#addcounter">..<span class="glyphicon glyphicon-plus pull-right"></span></li>
                 </ul>
             </div>
@@ -73,7 +74,7 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- ViewList Modal -->
 <div id="viewlist" class="modal fade" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
@@ -106,7 +107,7 @@
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Add Counter Modal -->
 <div id="addcounter" class="modal modal-wide fade" role="dialog">
   <div class="modal-dialog">
 
@@ -175,7 +176,7 @@
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Save View Modal -->
 <div id="saveview" class="modal fade" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
@@ -212,7 +213,7 @@
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Save View Result Modal -->
 <div id="saveviewres" class="modal fade" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
@@ -232,7 +233,7 @@
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Run View Result Modal -->
 <div id="runviewres" class="modal fade" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
@@ -253,7 +254,7 @@
 </div>
 
 
-<!-- Modal -->
+<!-- Run Performance View Modal -->
 <div id="runview" class="modal fade" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
