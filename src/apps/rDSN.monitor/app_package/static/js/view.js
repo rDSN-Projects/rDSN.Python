@@ -99,13 +99,14 @@ function realtimeDisplay(){
     var basedata = [
         ['x', '1', '2', '3','4','5','6','7','8','9','10', '11', '12', '13','14','15','16','17','18','19'],
     ];
-    
+    var latestdata=[['x', 1]];
     var counterList = JSON.parse(getParameterByName('counterList'));
     var tabledata=[]
     for (counter in counterList)
     {
         var name = counterList[counter]['name'];
         basedata.push([name,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
+        latestdata.push([name, 0]);
     }
 
     chart = c3.generate({
@@ -120,36 +121,45 @@ function realtimeDisplay(){
         }
     });
 
-    realtimeUpdateData(20,counterList);
+    $("#realtimeData thead").append("<tr><th>Counter Name</th><th>Counter Value</th></tr>");
+    for (counter in counterList)
+    {
+        $("#realtimeData tbody").append("<td>" + counterList[counter]['name'] + "</td><td><span class='counter" + counter + "'></td>");
+    }
+
+    realtimeUpdateData(20,counterList,latestdata);
 
 }
 
-function realtimeUpdateData(a,counterList)
+function realtimeUpdateData(a,counterList,latestdata)
 {
     var ajaxcount=0;
     var length = counterList.length;
-    var latestdata=[['x', 1]];
+    
     for (counter in counterList)
     {
         var machine = counterList[counter]['machine'];
         var index = counterList[counter]['index'];
         var name = counterList[counter]['name'];
-        (function(name){
-            $.post("http://" + machine + "/api/cli", {
-                command: "counter." + graphtype + "i " + index
+        
+        (function(counter){
+            $.post("http://" + machine + "/api/batchcli", {
+                commands: JSON.stringify(["pq time","counter." + graphtype + "i " + index])
             }, function(data){
-                latestdata=[['x', a],[name,data]];
-                chart.flow({
-                    columns: latestdata,
-                    duration:1000,
-                });
+                data = JSON.parse(data);
+                latestdata[Number(counter)+1][1]=data[1];
+                $('.counter'+counter).html(data[1]);
             });
-        })(name);
+        })(counter);
     }
-
-    setTimeout(function () {
-        realtimeUpdateData(a+1, counterList);
-    }, interval*1000);
+    chart.flow({
+        columns: latestdata,
+        duration:1000,
+        done:function(){
+            setTimeout(function () {
+                realtimeUpdateData(a+1, counterList, latestdata);
+            }, interval*1000);}
+    });
 }
 
     

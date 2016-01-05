@@ -1,7 +1,31 @@
 {% extends "static/view/template.html" %}
 {% block body %}
+<div class="container">
+
+	<div class="page-header">
+	</div>
+
+	<div class="page-header">
+        <h1> <font color= #333333><center>View Panel</center></font>
+			<small><center><font color= #778899></font></center></small>
+		</h1>
+	</div>
+
+</div>
 <div id="chart"></div>
-<div id="chartgroup"></div>
+<div class="container" style="margin-top:20px;">
+    <div class="row">
+        <div class="col-xs-6">
+            <table class="table table-striped" id="realtimeData">
+                <thead>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <script src="js/view.js"></script>
 
 {% endblock %}
