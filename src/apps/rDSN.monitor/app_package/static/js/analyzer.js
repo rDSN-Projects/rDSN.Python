@@ -143,6 +143,12 @@ $(function () {
     });
 });
 
+$(function () {
+    $('.list-group-item.app').each(function () {
+        
+    });
+});
+
 var counterList = [], counterSelected = []
 function SaveView() {
     var graphtype = $('input[name=graphtype]:checked').val();
@@ -198,7 +204,7 @@ function LoadView() {
                 + '<td><span class="glyphicon glyphicon-import" onclick="ImportView(\'' + message[i].name + '\');"></span></td>'
                 + '<td><span class="glyphicon glyphicon-remove" onclick="DelView(\'' + message[i].name + '\');"></span></td>'
                 + '</tr>';
-                viewList[message[i].name] = {counterList:message[i].counterList,graphtype:message[i].graphtype,interval:message[i].interval};
+                viewList[message[i].name] = {description:message[i].description,author:message[i].author,counterList:message[i].counterList,graphtype:message[i].graphtype,interval:message[i].interval};
                 
             }
             $("#viewList tbody > tr").empty();
@@ -214,7 +220,7 @@ function DelView(name) {
         }, function(data){
             if (data == 'success')
             {
-                $('#viewList tr#'+name).remove();
+                $('#viewList tr[id="'+name+'"]').remove();
                 delete viewList[name];
             }
         }
@@ -228,7 +234,7 @@ function AddMachine(){
         var machinename = $("#newmachinetext").val();
         if (machinename==''){machinename='unknown';}
         $("#newmachineli").remove();
-        $("#machinelist").append('<li class="list-group-item machine" id="' + machinename.replace(':','_') +'"><a onClick="Machine2App(\'' + machinename + '\');">' + machinename + '</a><span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + machinename.replace(':','_') +'\').remove();"></span></li>');
+        $("#machinelist").append('<li class="list-group-item machine" id="' + machinename.replace(':','_') +'"><a onClick="Machine2App(\'' + machinename + '\');$(\'.\'+$(this).parent().attr(\'class\').replace(\' \',\'.\')).css(\'background\',\'white\');$(this).parent().css(\'background\',\'#99ffcc\');">' + machinename + '</a><span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + machinename.replace(':','_') +'\').remove();"></span></li>');
     });
 }
 
@@ -240,8 +246,10 @@ function Machine2App(machine) {
             counterAll = message;
             $(".list-group-item.app").remove();
             for (app in message) {
-                $("#appList").append('<li class="list-group-item app"><a onClick="App2Section(\'' + machine + '\',\'' + app + '\');">' + app + '</a></li>');
+                $("#appList").append('<li class="list-group-item app"><a onClick="App2Section(\'' + machine + '\',\'' + app + '\');$(\'.\'+$(this).parent().attr(\'class\').replace(\' \',\'.\')).css(\'background\',\'white\');$(this).parent().css(\'background\',\'#99ffcc\');">' + app + '</a></li>');
             }
+            $(".list-group-item.section").remove();
+            $(".list-group-item.counter").remove();
         }
     );
 };
@@ -249,14 +257,15 @@ function Machine2App(machine) {
 function App2Section(machine, app) {
     $(".list-group-item.section").remove();
     for (section in counterAll[app]) {
-        $("#sectionList").append('<li class="list-group-item section"><a onClick="Section2Counter(\'' + machine + '\',\'' + app + '\',\'' + section + '\');">' + section + '</a></li>');
+        $("#sectionList").append('<li class="list-group-item section"><a onClick="Section2Counter(\'' + machine + '\',\'' + app + '\',\'' + section + '\');$(\'.\'+$(this).parent().attr(\'class\').replace(\' \',\'.\')).css(\'background\',\'white\');$(this).parent().css(\'background\',\'#99ffcc\');">' + section + '</a></li>');
     }
+    $(".list-group-item.counter").remove();
 };
 
 function Section2Counter(machine, app, section) {
     $(".list-group-item.counter").remove();
     for (counter in counterAll[app][section]) {
-        $("#counterList").append('<li class="list-group-item counter"><a onClick="Counter2List(\'' + machine + '\',\'' + app + '\',\'' + section + '\',\'' + counterAll[app][section][counter].name + '\',' + counterAll[app][section][counter].index + ');">' + counterAll[app][section][counter].name + '</a></li>');
+        $("#counterList").append('<li class="list-group-item counter"><a onClick="Counter2List(\'' + machine + '\',\'' + app + '\',\'' + section + '\',\'' + counterAll[app][section][counter].name + '\',' + counterAll[app][section][counter].index + ');$(\'.\'+$(this).parent().attr(\'class\').replace(\' \',\'.\')).css(\'background\',\'white\');$(this).parent().css(\'background\',\'#99ffcc\');">' + counterAll[app][section][counter].name + '</a></li>');
     }
 };
 
@@ -266,12 +275,27 @@ function Counter2List(machine, app, section, counter, index) {
 };
 
 function List2List() {
+    function containsCounter(obj, list) {
+    var i;
+    for (i = 0; i < list.length; i++) {
+        if (list[i].name === obj.name && list[i].machine === obj.machine) {
+            return true;
+        }
+    }
+    return false;
+    }
+
     $(".list-group.remove-list-box li").remove();
     for (counter in counterSelected) {
-        $("#counterListAll").append('<li class="list-group-item counter-main" id="' +  counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '"><a href="#">' + counterSelected[counter].name + '</a> <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '\').remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterSelected[counter].machine + '\', name:\'' +  counterSelected[counter].name + '\', index:' + counterSelected[counter].index + '}),1)"></span></li>');
-        counterList.push({machine: counterSelected[counter].machine, name: counterSelected[counter].name, index: counterSelected[counter].index});
+        var newCounter = {machine: counterSelected[counter].machine, name: counterSelected[counter].name, index: counterSelected[counter].index};
+        if (!containsCounter(newCounter,counterList))
+        {
+            counterList.push(newCounter);
+            $("#counterListAll").append('<li class="list-group-item counter-main" id="' +  counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '">' + counterSelected[counter].name + '<span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '\').remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterSelected[counter].machine + '\', name:\'' +  counterSelected[counter].name + '\', index:' + counterSelected[counter].index + '}),1)"></span></li>');
+        }
     }
-    counterSelected = []
+    
+    counterSelected = [];
 };
 
 function RunPerformanceView() {
@@ -333,6 +357,12 @@ function ImportView(viewname) {
             $('input[name=interval-num]').val(interval);
         }
     }
+
+    $('input[id=viewname]').val(viewname);
+    $('input[id=author]').val(viewList[viewname].author);
+    $('textarea[id=description]').val(viewList[viewname].description);
+    $('#viewlist').modal('hide');
+     
 }
 
 function PlayView(viewname) {

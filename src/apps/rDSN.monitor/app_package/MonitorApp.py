@@ -210,7 +210,7 @@ class PageBarHandler(BaseHandler):
                 queryRes[5] = remote_queryRes[5]
 
         tabledata = {}
-        tabledata['nc']=[(queryRes[0]-queryRes[3])/2]
+        tabledata['nc']=[(queryRes[3]-queryRes[0])/2]
         tabledata['qs']=[queryRes[1]]
         tabledata['es']=[queryRes[2]]
         tabledata['nr']=tabledata['nc']

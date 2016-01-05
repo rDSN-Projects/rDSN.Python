@@ -30,7 +30,10 @@
 <!-- Main panel -->
 <div class="container" style="margin-top:20px;">
 	<div class="row">
-        <div class="col-xs-10"></div>
+        <div class="col-xs-9"></div>
+        <div class="col-xs-1">
+            <button class="btn btn-warning" onclick="window.open('analyzer.html');">New View</button>
+        </div>
         <div class="col-xs-1">
             <button class="btn btn-success" onclick="LoadView()">Load View</button>
         </div>
@@ -78,7 +81,7 @@
 td { max-width:300px; word-wrap:break-word; }
 </style>
 <!-- ViewList Modal -->
-<div id="viewlist" class="modal fade" role="dialog">
+<div id="viewlist" class="modal modal-wide fade" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
     <div class="modal-content">
@@ -110,6 +113,17 @@ td { max-width:300px; word-wrap:break-word; }
   </div>
 </div>
 
+<style>
+a:hover {
+    background-color: #80ff80;
+    cursor: pointer;
+}
+.glyphicon:hover {
+    background-color: #ffff00;
+    cursor: pointer;
+}
+</style>
+
 <!-- Add Counter Modal -->
 <div id="addcounter" class="modal modal-wide fade" role="dialog">
   <div class="modal-dialog">
@@ -127,7 +141,7 @@ td { max-width:300px; word-wrap:break-word; }
                 <h4 class="text-center">Machines</h3>
                 <div class="well" style="max-height: 300px;overflow: auto;">
                     <ul class="list-group" id="machinelist">
-                        <li class="list-group-item"><a onClick="Machine2App('localhost:8080');">localhost:8080</a></li>
+                        <li class="list-group-item machine"><a onClick="Machine2App('localhost:8080');">localhost:8080</a></li>
                         <li class="list-group-item"><a onClick='AddMachine();'>(Add..)</a></li>
                     </ul>
                 </div>
@@ -150,11 +164,21 @@ td { max-width:300px; word-wrap:break-word; }
             </div>
             <div class="col-xs-5">
                 <h4 class="text-center">Counters</h3>
-                <div class="well" style="max-height: 300px;overflow: auto;">
+                <div class="well" style="max-height: 300px;overflow: auto;" id="counterwell">
                     <ul class="list-group" id="counterList">
                         <li class="list-group-item counter">.. </li>
                     </ul>
                 </div>
+                <input type="text" id="searchcounter">
+                <script>
+                $("#searchcounter").keypress(function (e){
+                    if(e.which == 13) {
+                    $("#counterwell").animate({
+                        scrollTop: $('li:contains("' + $("#searchcounter").val() +'")').first().offset().top
+                    }, 1000);
+                    }
+                });
+                </script>
             </div>
             <div class="col-xs-4">
                 
