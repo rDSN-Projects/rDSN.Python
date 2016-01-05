@@ -161,7 +161,7 @@ function SaveView() {
     if (interval=='')
     {
         interval = $('input[name=interval]:checked').val();
-        if (interval==undefined && graphtype!= 'bar')
+        if (interval==undefined )
         {
             $('result-saveview').html("Error: No update interval chosen");
             return;
@@ -230,7 +230,7 @@ function DelView(name) {
 var counterAll;
 function AddMachine(){
     $("#machinelist").append('<li class="list-group-item machine" id="newmachineli"><input type="text" id="newmachinetext"></li>');
-    $("#newmachinetext").focusout(function() {
+    $("#newmachinetext").change(function() {
         var machinename = $("#newmachinetext").val();
         if (machinename==''){machinename='unknown';}
         $("#newmachineli").remove();
@@ -312,20 +312,17 @@ function RunPerformanceView() {
     url = url + 'graphtype=' + graphtype;
 
     var interval = $('input[name=interval-num]').val();
-    if (graphtype != 'bar')
+    if (interval=='')
     {
-        if (interval=='')
+        interval = $('input[name=interval]:checked').val();
+        if (interval==undefined)
         {
-            interval = $('input[name=interval]:checked').val();
-            if (interval==undefined)
-            {
-                $('result-runview').html("Error: No update interval chosen");
-                $('#runviewres').modal('show');
-                return;
-            }
+            $('result-runview').html("Error: No update interval chosen");
+            $('#runviewres').modal('show');
+            return;
         }
-        url = url + '&interval=' + interval;
     }
+    url = url + '&interval=' + interval;
     url = url + '&counterList=' + encodeURIComponent(JSON.stringify(counterList));
     
     window.open(url);
@@ -379,20 +376,17 @@ function PlayView(viewname) {
     url = url + 'graphtype=' + graphtype;
 
     var interval = viewList[viewname].interval;
-    if (graphtype != 'bar')
+    if (interval=='')
     {
-        if (interval=='')
+        interval = $('input[name=interval]:checked').val();
+        if (interval==undefined)
         {
-            interval = $('input[name=interval]:checked').val();
-            if (interval==undefined)
-            {
-                $('result-runview').html("Error: No update interval chosen");
-                $('#runviewres').modal('show');
-                return;
-            }
+            $('result-runview').html("Error: No update interval chosen");
+            $('#runviewres').modal('show');
+            return;
         }
-        url = url + '&interval=' + interval;
     }
+    url = url + '&interval=' + interval;
     url = url + '&counterList=' + encodeURIComponent(viewList[viewname].counterList);
     
     window.open(url);
