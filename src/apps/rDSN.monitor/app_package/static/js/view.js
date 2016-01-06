@@ -160,11 +160,11 @@ function realtimeDisplay(){
     $("#realtimeData thead").append("<tr><th>Counter Name</th><th>Counter Value</th><th>rDSN Time</th></tr>");
     for (counter in counterList)
     {
-        $("#realtimeData tbody").append("<td>" + counterList[counter]['name'] + "</td><td><span class='counter" + counter + "'></td><td><span class='time" + counter + "'></td>");
+        $("#realtimeData tbody").append("<tr><td>" + counterList[counter]['name'] + "</td><td><span class='counter" + counter + "'></td><td><span class='time" + counter + "'></td></tr>");
     }
 
     $("#baseTimeData thead").append("<tr><th>Base Time</th></tr>");
-    $("#baseTimeData tbody").append("<td><span class='basetime'></td>");
+    $("#baseTimeData tbody").append("<tr><td><span class='basetime'></td></tr><tr><td>The data is not linearized!</td></tr>");
 
     inittime = (new Date()).getTime();
     realtimeUpdateData(20,counterList);
@@ -197,7 +197,8 @@ function realtimeUpdateData(a,counterList)
     }
     if (latesttime[0] != undefined)
     {
-        $('.basetime').html(addmstostr(latesttime[0], (new Date()).getTime() - inittime));
+        //$('.basetime').html(addmstostr(latesttime[0], (new Date()).getTime() - inittime));
+        $('.basetime').html(latesttime[0]);
     }
 
     chart.flow({
@@ -205,7 +206,7 @@ function realtimeUpdateData(a,counterList)
         duration:interval*1000,
         done:function(){
             setTimeout(function () {
-                //chart.xgrids.add([{value: a, text:time,class:'hoge'}]);
+                chart.xgrids.add([{value: a, text:latesttime[0],class:'hoge'}]);
                 realtimeUpdateData(a+1, counterList);
             }, 0);}
     });
@@ -214,6 +215,7 @@ function realtimeUpdateData(a,counterList)
 function updateRefData(counter,time,val){
     latestdata[counter]=val;
     latesttime[counter]=time;
+    DataToUpdate[Number(counter)+1][1]=val;
 }
     
 
