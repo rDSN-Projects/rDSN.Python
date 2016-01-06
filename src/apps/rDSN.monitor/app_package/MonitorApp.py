@@ -60,6 +60,7 @@ class BaseHandler(webapp2.RequestHandler):
         self.response.headers['content-type'] = 'text/plain'
         self.response.write(json.dumps(r))
 
+
     def geneRelate(self,task_code,params):
         task_list = sorted(ast.literal_eval(Native.dsn_cli_run('pq task_list')))
         call_list = ast.literal_eval(Native.dsn_cli_run('pq call '+task_code))
@@ -426,6 +427,9 @@ class ApiCliHandler(BaseHandler):
     def post(self):
         command = self.request.get('command');
         queryRes = Native.dsn_cli_run(command)
+
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+
         self.response.write(queryRes)
 
 class ApiBashHandler(BaseHandler):
@@ -529,6 +533,9 @@ class ApiBatchCliHandler(BaseHandler):
         queryRes = []
         for command in commands:
             queryRes.append(Native.dsn_cli_run(command))
+
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+
         self.SendJson(queryRes)
 
 def start_http_server(portNum):  
