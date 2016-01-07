@@ -452,7 +452,6 @@ class ApiPsutilHandler(BaseHandler):
         queryRes['cpu'] = psutil.cpu_percent(interval=1);
         queryRes['memory'] = psutil.virtual_memory()[2];
         queryRes['disk'] = psutil.disk_usage('/')[3];
-        queryRes['diskio'] = psutil.disk_io_counters(perdisk=False)
         queryRes['networkio'] = psutil.net_io_counters()
         self.response.write(json.dumps(queryRes))
 
