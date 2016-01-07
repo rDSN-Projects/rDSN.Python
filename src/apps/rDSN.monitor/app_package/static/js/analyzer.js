@@ -310,7 +310,11 @@ function RunPerformanceView() {
         $('#runviewres').modal('show');
         return;
     }
-    url = url + 'graphtype=' + graphtype;
+    var viewname = $("#viewname").val(); 
+    if (viewname == '') {viewname = 'Unamed View';}
+    url = url + 'viewname=' + encodeURIComponent(viewname);
+
+    url = url + '&graphtype=' + graphtype;
 
     var interval = $('input[name=interval-num]').val();
     if (interval=='')
@@ -374,7 +378,9 @@ function PlayView(viewname) {
         $('#runviewres').modal('show');
         return;
     }
-    url = url + 'graphtype=' + graphtype;
+    url = url + 'viewname=' + encodeURIComponent(viewname);
+
+    url = url + '&graphtype=' + graphtype;
 
     var interval = viewList[viewname].interval;
     if (interval=='')
