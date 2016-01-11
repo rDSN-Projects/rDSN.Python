@@ -49,8 +49,8 @@ function validateForm() {
     }
     if (file_name == null || file_name == "") {
         document.forms["fileForm"]["file_name"].value = fileToUpload.replace(/^.*[\\\/]/, '');
-        return true;
     }
+    return true;
 }
 </script>
 {% if RESPONSE=='success' %}

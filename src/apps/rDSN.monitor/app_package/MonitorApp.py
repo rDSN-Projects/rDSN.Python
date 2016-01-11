@@ -39,7 +39,7 @@ class AppStaticFileHandler(webapp2.RequestHandler):
             self.response.set_status(403)
             return
         try:
-            f = open(abs_path, 'r')
+            f = open(abs_path, 'rb')
             self.response.headers.add_header('Content-Type', mimetypes.guess_type(abs_path)[0])
             self.response.out.write(f.read())
             f.close()
@@ -400,6 +400,48 @@ class PageAnalyzerHandler(BaseHandler):
 class PageViewHandler(BaseHandler):
     def get(self):
         self.render_template('view.html')
+        
+class PageStoreHandler(BaseHandler):
+    def get(self):
+        self.render_template('store.html')
+    def post(self):
+        raw_file = self.request.get('fileToUpload')
+        raw_icon = self.request.get('iconToUpload')
+        file_name = self.request.get('file_name')
+        author = self.request.get('author')
+        description = self.request.get('description')
+
+        pack_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'
+        try:
+            savedFile = open(pack_dir + file_name + '.7z', 'wb')
+            savedFile.write(raw_file)
+            savedFile.close()
+            
+            loc_of_7z = ''
+            #for windows
+            for root, dirs, files in os.walk(os.path.dirname(os.getcwd()+"/../")):
+                if '7z.exe' in files:
+                    loc_of_7z = os.path.join(root, '7z.exe')
+                    break
+            subprocess.call([loc_of_7z,'e', pack_dir + file_name + '.7z','-y','-o'+pack_dir + '/' + file_name])
+
+            iconFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'+ file_name + '.jpg', 'wb')
+            iconFile.write(raw_icon)
+            iconFile.close()
+
+            infoFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'+ file_name + '.info', 'w')
+            infoFile.write(author+'\n')
+            infoFile.write(description+'\n')
+            infoFile.close()
+
+
+            return webapp2.redirect('/store.html')
+        except:
+            self.response.write('upload fail! Error:' + sys.exc_info()[0])
+
+class PageServiceHandler(BaseHandler):
+    def get(self):
+        self.render_template('service.html')
 
 '''
 class clusterinfoHandler(BaseHandler):
@@ -537,6 +579,23 @@ class ApiBatchCliHandler(BaseHandler):
 
         self.SendJson(queryRes)
 
+class ApiLoadPackHandler(BaseHandler):
+    def post(self):
+        packDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'
+        packFileList = [f for f in os.listdir(packDir) if os.path.isfile(os.path.join(packDir,f))]
+        packList = []
+        for name in packFileList:
+            if name[-5:]!='.info':
+                continue
+            packFile = open(os.path.join(packDir,name), 'r')
+            author = packFile.readline()
+            description = packFile.readline()
+            packFile.close()
+            packList.append({'name':name[:-5],'author':author,'description':description})
+        self.SendJson(packList)    
+
+
+
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/static")
     web_app = webapp2.WSGIApplication([
@@ -556,6 +615,8 @@ def start_http_server(portNum):
     ('/analyzer.html', PageAnalyzerHandler),
 #    ('/clusterinfo.html', clusterinfoHandler),
     ('/view.html', PageViewHandler),
+    ('/store.html', PageStoreHandler),
+    ('/service.html', PageServiceHandler),
 
     ('/api/cli', ApiCliHandler),
     ('/api/bash', ApiBashHandler),
@@ -568,6 +629,7 @@ def start_http_server(portNum):
     ('/api/view/load', ApiLoadViewHandler),
     ('/api/view/del', ApiDelViewHandler),
     ('/api/batchcli', ApiBatchCliHandler),
+    ('/api/pack/load', ApiLoadPackHandler),
 
     ('/app/(.+)', AppStaticFileHandler)
 ], debug=True)

@@ -229,6 +229,7 @@ function DelView(name) {
 
 var counterAll;
 function AddMachine(){
+    if($("#newmachinetext").length) {return;}
     $('<li class="list-group-item machine" id="newmachineli"><input type="text" id="newmachinetext"></li>').insertBefore("#addmachinebut");
     $("#newmachinetext").change(function() {
         var machinename = $("#newmachinetext").val();
@@ -292,12 +293,29 @@ function List2List() {
         if (!containsCounter(newCounter,counterList))
         {
             counterList.push(newCounter);
-            $("#counterListAll").append('<li class="list-group-item counter-main" id="' +  counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '">' + counterSelected[counter].name + '<span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + counterSelected[counter].machine.replace(':','_') + counterSelected[counter].index + '\').remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterSelected[counter].machine + '\', name:\'' +  counterSelected[counter].name + '\', index:' + counterSelected[counter].index + '}),1)"></span></li>');
+            $("#counterListAll").append('<li class="list-group-item counter-main"><pre>' + counterSelected[counter].name + '<span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(this).parent().parent().remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterSelected[counter].machine + '\', name:\'' +  counterSelected[counter].name + '\', index:' + counterSelected[counter].index + '}),1)"></span> <span class="glyphicon glyphicon-duplicate pull-right" aria-hidden="true" onclick="if($(&quot;#newcountertext&quot;).length) {return;}$(this).parent().parent().after(\'<li class=&quot;list-group-item counter-main &quot; id=&quot;newcounterli&quot;><input type=&quot;text&quot; id=&quot;newcountertext&quot;></li>\');$(&quot;#newcountertext&quot;).val(&quot;' + counterSelected[counter].name + '&quot;);$(&quot;#newcountertext&quot;).attr(&quot;size&quot;,' + counterSelected[counter].name.length + ');duplicateCounter();"></span></pre></li>');
         }
     }
     
     counterSelected = [];
 };
+
+function duplicateCounter() {
+    function parseCounter(str) {
+        return str.split(/[\s\*]+/)
+    }
+
+    $("#newcountertext").change(function() {
+        var countername = $("#newcountertext").val();
+        if (countername==''){countername='unknown * unknown * unknown * unknown';}
+
+        var parseRes = parseCounter(countername)
+        var newCounter = {machine: parseRes[0], name: parseRes[1], index: counterSelected[counter].index};
+        var newCounterText = '<li class="list-group-item counter-main"><pre>' + countername + '</pre></li>';
+        $(newCounterText).insertBefore("#newcounterli");
+        $("#newcounterli").remove();
+    });
+}
 
 function RunPerformanceView() {
     //window.open('view.html?graphtype=bar&counterList=[{"name":%221.0%4010.172.96.42%3A34801.commit(%23%2Fs)%22,"index":2430951489537,"machine":"localhost:8080"},{"name":%221.0%4010.172.96.42%3A34801.decree%23%22,"index":2439541424129,"machine":"localhost:8080"}]');
