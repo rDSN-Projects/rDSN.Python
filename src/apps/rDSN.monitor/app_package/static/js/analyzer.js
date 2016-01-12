@@ -319,7 +319,6 @@ function duplicateCounter() {
 }
 
 function RunPerformanceView() {
-    //window.open('view.html?graphtype=bar&counterList=[{"name":%221.0%4010.172.96.42%3A34801.commit(%23%2Fs)%22,"index":2430951489537,"machine":"localhost:8080"},{"name":%221.0%4010.172.96.42%3A34801.decree%23%22,"index":2439541424129,"machine":"localhost:8080"}]');
     var url = "view.html?"
 
     var graphtype = $('input[name=graphtype]:checked').val();
@@ -361,7 +360,7 @@ function ImportView(viewname) {
     var list = JSON.parse(viewList[viewname].counterList)
     for (counter in list) {
         var counterData = list[counter];
-        $("#counterListAll").append('<li class="list-group-item counter-main" id="' + counterData.machine.replace(':','_') + counterData.index + '"><a href="#">' + counterData.name + '</a> <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + counterData.machine.replace(':','_') + counterData.index + '\').remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterData.machine + '\', name:\'' + counterData.name + '\', index:' + counterData.index + '}),1)"></span></li>');
+        $("#counterListAll").append('<li class="list-group-item counter-main"> <pre>' + counterData.name + ' <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(this).parent().parent().remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterData.machine + '\', name:\'' + counterData.name + '\', index:' + counterData.index + '}),1)"></span></pre></li>');
         counterList.push({machine: counterData.machine, name: counterData.name, index: counterData.index});
     }
     $('input[name=graphtype][value=' + viewList[viewname].graphtype + ']').attr('checked', 'checked');

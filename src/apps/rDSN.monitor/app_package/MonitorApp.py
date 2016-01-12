@@ -21,6 +21,8 @@ import json
 import psutil
 import mimetypes
 import shutil
+import sqlite3
+import platform
 
 sys.path.append(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + '/app_package')
 
@@ -316,34 +318,6 @@ class PageConfigureHandler(BaseHandler):
         params['CONTENT'] = queryRes 
         self.render_template('configure.html',params)
 
-class PageSelectionHandler(BaseHandler):
-    def get(self):
-        params = {}
-        queryRes = ast.literal_eval(Native.dsn_cli_run('counter.list'))
-        params['COUNTER_LIST'] = queryRes 
-        self.render_template('selection.html',params)
-
-    def post(self):
-        counter_list = json.loads(self.request.get('counter_list'))
-        queryRes = '{"time":"'+Native.dsn_cli_run('pq time')+'","data":['
-        first_flag=0;
-
-        queryType = self.request.get('queryType')
-        if queryType == '':
-            queryType = 'sample'
-
-        for counter in counter_list:
-            if first_flag:
-                queryRes += ','
-            else:
-                first_flag = 1
-            res = Native.dsn_cli_run('counter.'+queryType+'i '+counter_list[counter])
-            if res=='':
-                res=0
-            queryRes += res
-        queryRes += ']}'
-        self.response.write(queryRes)
-
 class PageFileViewHandler(BaseHandler):
     def get(self):
         params = {}
@@ -419,48 +393,42 @@ class PageStoreHandler(BaseHandler):
             savedFile.close()
             
             loc_of_7z = ''
+            exe_of_7z = ''
             #for windows
+                os_type = platform.system()
+                if os_type=='Windows':
+                    exe_of_7z = '7z.exe'
+                elif os_type=='Linux':
+                    exe_of_7z = '7z'
             for root, dirs, files in os.walk(os.path.dirname(os.getcwd()+"/../")):
-                if '7z.exe' in files:
-                    loc_of_7z = os.path.join(root, '7z.exe')
+                if exe_of_7z in files:
+                    loc_of_7z = os.path.join(root, exe_of_7z)
                     break
+            if loc_of_7z =='':
+                self.response.write('Error: cannot find '+exe_of_7z)
+
             subprocess.call([loc_of_7z,'x', pack_dir + file_name + '.7z','-y','-o'+pack_dir + '/' + file_name])
 
             iconFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'+ file_name + '.jpg', 'wb')
             iconFile.write(raw_icon)
             iconFile.close()
 
-            infoFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'+ file_name + '.info', 'w')
-            infoFile.write(author+'\n')
-            infoFile.write(description+'\n')
-            infoFile.close()
+            conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+            c = conn.cursor()
+            c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text)")
+            c.execute("DELETE FROM pack WHERE name = '" + file_name + "';")
+            c.execute("INSERT INTO pack VALUES ('" + file_name + "','" + author + "','" + description + "');")
+            conn.commit()
 
+            conn.close()
 
             return webapp2.redirect('/store.html')
         except:
-            self.response.write('upload fail! Error:' + sys.exc_info()[0])
+            self.response.write('upload fail! Error:' + sys.exc_info()[0].__name__)
 
 class PageServiceHandler(BaseHandler):
     def get(self):
         self.render_template('service.html')
-
-'''
-class clusterinfoHandler(BaseHandler):
-    def get(self):
-        params = {}
-        metaData = json.loads(Native.dsn_cli_run('meta.info'))
-        params['meta'] = json.dumps(metaData,sort_keys=True, indent=4, separators=(',', ': '))
-        replicaList = []
-        for replica in metaData["_nodes"].keys():
-            replicaList.append(replica.split(':')[0])
-        replicaList = list(set(replicaList))
-        replicaData=[]
-        for replica in replicaList:
-            replicaSingleData = json.loads(urllib2.urlopen("http://"+replica+":"+str(global_info['portNum'])+"/replicainfo").read())
-            replicaData.append(json.dumps(replicaSingleData,sort_keys=True, indent=4, separators=(',', ': ')))
-        params['replica'] = replicaData
-        self.render_template('clusterinfo.html',params)
-'''
 
 class ApiCliHandler(BaseHandler):
     def get(self):
@@ -498,17 +466,6 @@ class ApiPsutilHandler(BaseHandler):
         queryRes['networkio'] = psutil.net_io_counters()
         self.response.write(json.dumps(queryRes))
 
-class ApiReplicaInfoHandler(BaseHandler):
-    def get(self):
-        queryList = []
-        for nodeinfo in Native.dsn_cli_run('engine').split('\n'):
-            if 'replica' in nodeinfo:
-                queryRes = Native.dsn_cli_run(nodeinfo.split('.')[1]+'.info')
-                if 'unknown command' not in queryRes:
-                    queryList.append(queryRes)
-        queryRes = '[' + ','.join(queryList) + ']'
-        self.response.write(queryRes)
-
 class ApiRemoteCounterSampleHandler(BaseHandler):
     def get(self):
         task_code = self.request.get('task_code')
@@ -529,69 +486,52 @@ class ApiSaveViewHandler(BaseHandler):
         graphtype = self.request.get('graphtype')
         interval = self.request.get('interval')
 
-        viewFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/view/'+ name, 'w')
+        conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
+        c.execute("DELETE FROM view WHERE name = '" + name + "';")
+        c.execute("INSERT INTO view VALUES ('" + name + "','" + author + "','" + description + "','" + counterList + "','" + graphtype + "','" + interval + "');")
+        conn.commit()
 
-        viewFile.write(author+'\n')
-        viewFile.write(description+'\n')
-        viewFile.write(counterList+'\n')
-        viewFile.write(graphtype+'\n')
-        viewFile.write(interval+'\n')
-
-        viewFile.close()
+        conn.close()
 
         self.response.write('view "'+ name +'" is successfully saved!')
 
 class ApiLoadViewHandler(BaseHandler):
     def post(self): 
-        viewDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/view/'
-        viewFileList = [f for f in os.listdir(viewDir) if os.path.isfile(os.path.join(viewDir,f))]
         viewList = []
-        for name in viewFileList:
-            viewFile = open(os.path.join(viewDir,name), 'r')
-            author = viewFile.readline()
-            description = viewFile.readline()
-            counterList = viewFile.readline()
-            graphtype = viewFile.readline()
-            interval = viewFile.readline()
-            viewFile.close()
-            viewList.append({'name':name,'author':author,'description':description,'counterList':counterList,'graphtype':graphtype,'interval':interval})
+
+        conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
+        for view in c.execute('SELECT * FROM view'):
+            viewList.append({'name':view[0],'author':view[1],'description':view[2],'counterList':view[3],'graphtype':view[4],'interval':view[5]})
+        conn.close()
         self.SendJson(viewList)
 
 class ApiDelViewHandler(BaseHandler):
     def post(self): 
         name = self.request.get('name')
-        viewDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/view/'
-        viewFileList = [f for f in os.listdir(viewDir) if os.path.isfile(os.path.join(viewDir,f))]
-        if name in viewFileList:
-            os.remove(os.path.join(viewDir,name))
-            self.response.write('success')
-        else:
-            self.response.write('fail')
+        conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
+        c.execute("DELETE FROM view WHERE name = '" + name + "';")
+        conn.commit()
+        conn.close()
 
-class ApiBatchCliHandler(BaseHandler):
-    def post(self):
-        commands = json.loads(self.request.get('commands'));
-        queryRes = []
-        for command in commands:
-            queryRes.append(Native.dsn_cli_run(command))
-
-        self.response.headers['Access-Control-Allow-Origin'] = '*'
-
-        self.SendJson(queryRes)
+        self.response.write('success')
 
 class ApiLoadPackHandler(BaseHandler):
     def post(self):
-        packDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'
-        packFileList = [f for f in os.listdir(packDir) if os.path.isfile(os.path.join(packDir,f))]
         packList = []
-        for name in packFileList:
-            if name[-5:]!='.info':
-                continue
-            packFile = open(os.path.join(packDir,name), 'r')
-            author = packFile.readline()
-            description = packFile.readline()
-            packFile.close()
-            packList.append({'name':name[:-5],'author':author,'description':description})
+
+        conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text)")
+        for pack in c.execute('SELECT * FROM pack'):
+            packList.append({'name':pack[0],'author':pack[1],'description':pack[2]})
+        conn.close()
+        
         self.SendJson(packList)    
 
 class ApiDelPackHandler(BaseHandler):
@@ -599,9 +539,15 @@ class ApiDelPackHandler(BaseHandler):
         packName = self.request.get('name')
         packDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'
 
+        conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text)")
+        c.execute("DELETE FROM pack WHERE name = '" + packName + "';")
+        conn.commit()
+        conn.close()
+
         try:
             shutil.rmtree(os.path.join(packDir,packName))
-            os.remove(os.path.join(packDir,packName+'.info'))
             os.remove(os.path.join(packDir,packName+'.jpg'))
             os.remove(os.path.join(packDir,packName+'.7z'))
         
@@ -624,10 +570,8 @@ def start_http_server(portNum):
     ('/bash.html', PageBashHandler),
     ('/editor.html', PageEditorHandler),
     ('/configure.html', PageConfigureHandler),
-    ('/selection.html', PageSelectionHandler),
     ('/fileview.html', PageFileViewHandler),
     ('/analyzer.html', PageAnalyzerHandler),
-#    ('/clusterinfo.html', clusterinfoHandler),
     ('/view.html', PageViewHandler),
     ('/store.html', PageStoreHandler),
     ('/service.html', PageServiceHandler),
@@ -636,13 +580,11 @@ def start_http_server(portNum):
     ('/api/bash', ApiBashHandler),
     ('/api/value', ApiValueHandler),
     ('/api/psutil', ApiPsutilHandler),
-    ('/api/replicainfo', ApiReplicaInfoHandler),
     ('/api/remoteCounterSample', ApiRemoteCounterSampleHandler),
     ('/api/remoteCounterCalc', ApiRemoteCounterCalcHandler),
     ('/api/view/save', ApiSaveViewHandler),
     ('/api/view/load', ApiLoadViewHandler),
     ('/api/view/del', ApiDelViewHandler),
-    ('/api/batchcli', ApiBatchCliHandler),
     ('/api/pack/load', ApiLoadPackHandler),
     ('/api/pack/del', ApiDelPackHandler),
 
