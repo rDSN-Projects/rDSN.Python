@@ -20,6 +20,7 @@ import subprocess
 import json
 import psutil
 import mimetypes
+import shutil
 
 sys.path.append(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + '/app_package')
 
@@ -423,7 +424,7 @@ class PageStoreHandler(BaseHandler):
                 if '7z.exe' in files:
                     loc_of_7z = os.path.join(root, '7z.exe')
                     break
-            subprocess.call([loc_of_7z,'e', pack_dir + file_name + '.7z','-y','-o'+pack_dir + '/' + file_name])
+            subprocess.call([loc_of_7z,'x', pack_dir + file_name + '.7z','-y','-o'+pack_dir + '/' + file_name])
 
             iconFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'+ file_name + '.jpg', 'wb')
             iconFile.write(raw_icon)
@@ -559,7 +560,6 @@ class ApiLoadViewHandler(BaseHandler):
 class ApiDelViewHandler(BaseHandler):
     def post(self): 
         name = self.request.get('name')
-        print name
         viewDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/view/'
         viewFileList = [f for f in os.listdir(viewDir) if os.path.isfile(os.path.join(viewDir,f))]
         if name in viewFileList:
@@ -594,7 +594,21 @@ class ApiLoadPackHandler(BaseHandler):
             packList.append({'name':name[:-5],'author':author,'description':description})
         self.SendJson(packList)    
 
+class ApiDelPackHandler(BaseHandler):
+    def post(self):
+        packName = self.request.get('name')
+        packDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'
 
+        try:
+            shutil.rmtree(os.path.join(packDir,packName))
+            os.remove(os.path.join(packDir,packName+'.info'))
+            os.remove(os.path.join(packDir,packName+'.jpg'))
+            os.remove(os.path.join(packDir,packName+'.7z'))
+        
+            self.response.write('success')
+        except:
+            self.response.write('fail')
+        
 
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/static")
@@ -630,6 +644,7 @@ def start_http_server(portNum):
     ('/api/view/del', ApiDelViewHandler),
     ('/api/batchcli', ApiBatchCliHandler),
     ('/api/pack/load', ApiLoadPackHandler),
+    ('/api/pack/del', ApiDelPackHandler),
 
     ('/app/(.+)', AppStaticFileHandler)
 ], debug=True)

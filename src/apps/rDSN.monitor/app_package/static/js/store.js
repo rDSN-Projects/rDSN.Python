@@ -1,7 +1,10 @@
 document.forms["fileForm"]["fileToUpload"].onchange = AutoFill;
 
 function AutoFill() {
-    $('#packname').val(document.forms["fileForm"]["fileToUpload"].value.replace(/^.*[\\\/]/, '').slice(0, -3));
+    if ($('#packname').val() == '')
+    {
+        $('#packname').val(document.forms["fileForm"]["fileToUpload"].value.replace(/^.*[\\\/]/, '').slice(0, -3));
+    }
 }
 
 function validateForm() {
@@ -45,7 +48,7 @@ function loadPackages() {
                 + '<td><span class="glyphicon glyphicon-gift" aria-hidden="true" onclick="window.location.href = \'fileview.html?working_dir=app_package/local/pack/' + message[i].name + '\';"></span></td>'
                 + '<td><span class="glyphicon glyphicon-flash" aria-hidden="true" onclick=";"></span></td>'
                 + '<td><span class="glyphicon glyphicon-send" aria-hidden="true" onclick=";"></span></td>'
-                + '<td><span class="glyphicon glyphicon-remove" aria-hidden="true" onclick="RemoveApp();"></span></td>'
+                + '<td><span class="glyphicon glyphicon-remove" aria-hidden="true" onclick="RemoveApp(\'' + message[i].name + '\');"></span></td>'
                 + '</tr>';
                 
             }
@@ -57,10 +60,13 @@ function loadPackages() {
 
 }
 
-function RemoveApp() {
-
-
-
-
+function RemoveApp(name) {
+    $.post("/api/pack/del", { name: name
+        }, function(data){ 
+            if(data=='success') {
+                $('tr[id="'+name+'"]').remove();
+            }
+        }
+    );
 }
 
