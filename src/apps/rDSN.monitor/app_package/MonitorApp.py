@@ -324,6 +324,13 @@ class PageFileViewHandler(BaseHandler):
         dir = os.path.dirname(os.getcwd()+"/")
         working_dir = self.request.get('working_dir')
 
+        try:
+            params['FILES'] = [f for f in os.listdir(os.path.join(dir,working_dir)) if os.path.isfile(os.path.join(dir,working_dir,f))]
+            params['FILEFOLDERS'] = [f for f in os.listdir(os.path.join(dir,working_dir)) if os.path.isdir(os.path.join(dir,working_dir,f))]
+        except:
+            self.response.write('Cannot find the specified file path, please check again')
+            return
+
         dir_list = []
         lastPath = ''
         for d in working_dir.split('/'):
@@ -331,8 +338,6 @@ class PageFileViewHandler(BaseHandler):
                 lastPath += '/'
             lastPath +=d
             dir_list.append({'path':lastPath,'name':d})
-        params['FILES'] = [f for f in os.listdir(os.path.join(dir,working_dir)) if os.path.isfile(os.path.join(dir,working_dir,f))]
-        params['FILEFOLDERS'] = [f for f in os.listdir(os.path.join(dir,working_dir)) if os.path.isdir(os.path.join(dir,working_dir,f))]
         params['WORKING_DIR'] = working_dir
         params['DIR_LIST'] = dir_list
         
@@ -395,11 +400,11 @@ class PageStoreHandler(BaseHandler):
             loc_of_7z = ''
             exe_of_7z = ''
             #for windows
-                os_type = platform.system()
-                if os_type=='Windows':
-                    exe_of_7z = '7z.exe'
-                elif os_type=='Linux':
-                    exe_of_7z = '7z'
+            os_type = platform.system()
+            if os_type=='Windows':
+                exe_of_7z = '7z.exe'
+            elif os_type=='Linux':
+                exe_of_7z = '7z'
             for root, dirs, files in os.walk(os.path.dirname(os.getcwd()+"/../")):
                 if exe_of_7z in files:
                     loc_of_7z = os.path.join(root, exe_of_7z)
