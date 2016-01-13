@@ -393,6 +393,21 @@ class PageStoreHandler(BaseHandler):
 
         pack_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'
         try:
+            conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+            c = conn.cursor()
+            c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text)")
+
+            c.execute("SELECT * FROM pack WHERE name = '" + file_name + "'")
+            if c.fetchall()!=[]:
+                conn.close()
+                self.response.write('Upload fail! App "'+ file_name +'" already exists!')
+                return
+
+            c.execute("INSERT INTO pack VALUES ('" + file_name + "','" + author + "','" + description + "');")
+            conn.commit()
+
+            conn.close()
+
             savedFile = open(pack_dir + file_name + '.7z', 'wb')
             savedFile.write(raw_file)
             savedFile.close()
@@ -417,15 +432,6 @@ class PageStoreHandler(BaseHandler):
             iconFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'+ file_name + '.jpg', 'wb')
             iconFile.write(raw_icon)
             iconFile.close()
-
-            conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
-            c = conn.cursor()
-            c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text)")
-            c.execute("DELETE FROM pack WHERE name = '" + file_name + "';")
-            c.execute("INSERT INTO pack VALUES ('" + file_name + "','" + author + "','" + description + "');")
-            conn.commit()
-
-            conn.close()
 
             return webapp2.redirect('/store.html')
         except:
@@ -495,6 +501,7 @@ class ApiSaveViewHandler(BaseHandler):
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
         c.execute("DELETE FROM view WHERE name = '" + name + "';")
+
         c.execute("INSERT INTO view VALUES ('" + name + "','" + author + "','" + description + "','" + counterList + "','" + graphtype + "','" + interval + "');")
         conn.commit()
 

@@ -61,27 +61,10 @@ $( document ).ready(function() {
 });
 </script>
 
-<style>
-.fileUpload {
-    position: relative;
-    overflow: hidden;
-    margin: 10px;
-}
-.fileUpload input.upload {
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 0;
-    padding: 0;
-    font-size: 20px;
-    cursor: pointer;
-    opacity: 0;
-    filter: alpha(opacity=0);
-}
-</style>
+
 
 <!-- Upload Package Modal -->
-<div id="uploadpack" class="modal modal-wide fade" role="dialog">
+<div id="uploadpack" class="modal fade" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
     <div class="modal-content">
@@ -111,11 +94,18 @@ $( document ).ready(function() {
         <div class="row">
             <div class="col-xs-12">
                 <form name="fileForm" method="post" onsubmit="return validateForm()" enctype="multipart/form-data">
-                <label for="icon" >Package icon</label>
-                <input type="file" name="iconToUpload" id="icon" accept=".jpg">
-                <label for="pack" >Package file</label>
-                <input type="file" name="fileToUpload" id="pack" accept=".7z">
-                <input type="submit" value="Submit" name="submit">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <input id="iconpath" placeholder="Choose File" disabled="disabled" />
+                        <div class="fileUpload btn btn-info"><span>Upload Icon</span><input type="file" name="iconToUpload" id="iconToUpload" class="upload" accept=".jpg"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <input id="filepath" placeholder="Choose File" disabled="disabled" />
+                        <div class="fileUpload btn btn-warning"><span>Upload Package</span><input type="file" name="fileToUpload" id="fileToUpload" class="upload" accept=".7z"></div>
+                    </div>
+                </div>
                 <input id="source" name="source" type="hidden" value=""></input>
                 <input id="file_name" name="file_name" type="hidden" value=""></input>
                 <input id="author" name="author" type="hidden" value=""></input>
@@ -125,6 +115,7 @@ $( document ).ready(function() {
         </div>
       </div>
       <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="$('form[name=\'fileForm\']').submit();">Submit</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
@@ -132,6 +123,26 @@ $( document ).ready(function() {
   </div>
 </div>
 
+<style>
+.fileUpload {
+    position: relative;
+    overflow: hidden;
+    margin: 10px;
+}
+.fileUpload input.upload {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    filter: alpha(opacity=0);
+    background: #f44c0e;
+}
+
+</style>
 
 <script src="js/store.js"></script>
 

@@ -1,4 +1,3 @@
-document.forms["fileForm"]["fileToUpload"].onchange = AutoFill;
 
 function AutoFill() {
     if ($('#packname').val() == '')
@@ -70,3 +69,11 @@ function RemoveApp(name) {
     );
 }
 
+document.getElementById("iconToUpload").onchange = function () {
+    document.getElementById("iconpath").value = this.value.replace(/^.*[\\\/]/, '');
+};
+
+document.getElementById("fileToUpload").onchange = function () {
+    AutoFill();
+    document.getElementById("filepath").value = this.value.replace(/^.*[\\\/]/, '');
+};
