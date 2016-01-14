@@ -44,7 +44,7 @@ function loadPackages() {
                 + '<td>' + message[i].name + '</td>' 
                 + '<td>' + message[i].author + '</td>'
                 + '<td>' + message[i].description + '</td>'
-                + '<td><span class="glyphicon glyphicon-gift" aria-hidden="true" onclick="window.location.href = \'fileview.html?working_dir=app_package/local/pack/' + message[i].name + '\';"></span></td>'
+                + '<td><span class="glyphicon glyphicon-gift" aria-hidden="true" onclick="window.location.href = \'fileview.html?working_dir=pack/' + message[i].name + '&root_dir=local\';"></span></td>'
                 + '<td><span class="glyphicon glyphicon-flash" aria-hidden="true" onclick=";"></span></td>'
                 + '<td><span class="glyphicon glyphicon-send" aria-hidden="true" onclick=";"></span></td>'
                 + '<td><span class="glyphicon glyphicon-remove" aria-hidden="true" onclick="RemoveApp(\'' + message[i].name + '\');"></span></td>'

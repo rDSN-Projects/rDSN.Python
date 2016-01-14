@@ -341,8 +341,17 @@ class PageConfigureHandler(BaseHandler):
 class PageFileViewHandler(BaseHandler):
     def get(self):
         params = {}
-        dir = os.path.dirname(os.getcwd()+"/")
         working_dir = self.request.get('working_dir')
+        root_dir = self.request.get('root_dir')
+        
+        if root_dir == 'local':
+            dir = os.path.dirname(GetMonitorDirPath()+'/local/')
+        elif root_dir == 'app':
+            dir = os.path.dirname(os.getcwd()+"/")
+        elif root_dir == '':
+            root_dir = 'app'
+            dir = os.path.dirname(os.getcwd()+"/")
+        
 
         try:
             params['FILES'] = [f for f in os.listdir(os.path.join(dir,working_dir)) if os.path.isfile(os.path.join(dir,working_dir,f))]
@@ -359,6 +368,7 @@ class PageFileViewHandler(BaseHandler):
             lastPath +=d
             dir_list.append({'path':lastPath,'name':d})
         params['WORKING_DIR'] = working_dir
+        params['ROOT_DIR'] = root_dir
         params['DIR_LIST'] = dir_list
         
         self.render_template('fileview.html',params)
@@ -589,7 +599,7 @@ class ApiDelPackHandler(BaseHandler):
         
 
 def start_http_server(portNum):  
-    static_app = webob.static.DirectoryApp(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/static")
+    static_app = webob.static.DirectoryApp(GetMonitorDirPath() + "/static")
     web_app = webapp2.WSGIApplication([
     ('/', PageMainHandler),
     ('/main.html', PageMainHandler),

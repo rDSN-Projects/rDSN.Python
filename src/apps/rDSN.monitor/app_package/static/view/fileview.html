@@ -16,14 +16,14 @@
 
 Current directory:
 <ol class="breadcrumb">
-    <li><a href="?working_dir=">app</a></li>
-    {% for dir in DIR_LIST %}<li><a href="?working_dir={{dir.path}}">{{dir.name}}</a></li>{% endfor %}
+    <li><a href="?working_dir=&root_dir={{ROOT_DIR}}">root</a></li>
+    {% for dir in DIR_LIST %}<li><a href="?working_dir={{dir.path}}&root_dir={{ROOT_DIR}}">{{dir.name}}</a></li>{% endfor %}
 </ol>
 File listing:
 <ol class="breadcrumb">
-    {% for filefolder in FILEFOLDERS %}<li><a href="?working_dir={{WORKING_DIR}}{% if WORKING_DIR!='' %}/{% endif %}{{filefolder}}">{{filefolder}}</a></li>{% endfor %}
-    {% for file in FILES %}<li><a href="app/{{WORKING_DIR}}/{{file}}">{{file}}</a></li>{% endfor %}
-    <li><a href="?working_dir={% if DIR_LIST|length>1 %}{{DIR_LIST[-2].path}}{% else %}{% endif %}">..</a></li>
+    {% for filefolder in FILEFOLDERS %}<li><a href="?working_dir={{WORKING_DIR}}{% if WORKING_DIR!='' %}/{% endif %}{{filefolder}}&root_dir={{ROOT_DIR}}">{{filefolder}}</a></li>{% endfor %}
+    {% for file in FILES %}<li><a href="{{ROOT_DIR}}/{{WORKING_DIR}}/{{file}}">{{file}}</a></li>{% endfor %}
+    <li><a href="?working_dir={% if DIR_LIST|length>1 %}{{DIR_LIST[-2].path}}{% else %}{% endif %}&root_dir={{ROOT_DIR}}">..</a></li>
 </ol>
 
 <form name="fileForm" method="post" onsubmit="return validateForm()" enctype="multipart/form-data">
