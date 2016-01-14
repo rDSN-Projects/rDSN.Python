@@ -61,7 +61,39 @@ $( document ).ready(function() {
 });
 </script>
 
+<style>
+.fileUpload {
+    position: relative;
+    overflow: hidden;
+    margin: 10px;
+}
+.fileUpload input.upload {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    filter: alpha(opacity=0);
+    background: #f44c0e;
+}
 
+/* CSS REQUIRED */
+.state-icon {
+    left: -5px;
+}
+.list-group-item-primary {
+    color: rgb(255, 153, 51);
+    background-color: rgb(255, 153, 51);
+}
+
+/* DEMO ONLY - REMOVES UNWANTED MARGIN */
+.well .list-group {
+    margin-bottom: 0px;
+}
+</style>
 
 <!-- Upload Package Modal -->
 <div id="uploadpack" class="modal fade" role="dialog">
@@ -93,17 +125,34 @@ $( document ).ready(function() {
         </div>
         <div class="row">
             <div class="col-xs-12">
+                <label>Supported Cluster Type</label>
+                <div class="well" style="max-height: 300px;overflow: auto;">
+                <ul id="check-list-box" class="list-group checked-list-box">
+                    <li class="list-group-item" index="kubernetes">kubernetes</li>
+                    <li class="list-group-item" index="docker">docker</li>
+                    <li class="list-group-item" index="bare_medal_linux">bare_medal_linux</li>
+                    <li class="list-group-item" index="bare_medal_windows">bare_medal_windows</li>
+                    <li class="list-group-item" index="yarn_on_linux">yarn_on_linux</li>
+                    <li class="list-group-item" index="yarn_on_windows">yarn_on_windows</li>
+                    <li class="list-group-item" index="mesos_on_linux">mesos_on_linux</li>
+                    <li class="list-group-item" index="mesos_on_windows">mesos_on_windows</li>
+                </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
                 <form name="fileForm" method="post" onsubmit="return validateForm()" enctype="multipart/form-data">
                 <div class="row">
                     <div class="col-xs-12">
                         <input id="iconpath" placeholder="Choose File" disabled="disabled" />
-                        <div class="fileUpload btn btn-info"><span>Upload Icon</span><input type="file" name="iconToUpload" id="iconToUpload" class="upload" accept=".jpg"></div>
+                        <div class="fileUpload btn btn-info"><span>Select Icon</span><input type="file" name="iconToUpload" id="iconToUpload" class="upload" accept=".jpg"></div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-xs-12">
                         <input id="filepath" placeholder="Choose File" disabled="disabled" />
-                        <div class="fileUpload btn btn-warning"><span>Upload Package</span><input type="file" name="fileToUpload" id="fileToUpload" class="upload" accept=".7z"></div>
+                        <div class="fileUpload btn btn-warning"><span>Select Package</span><input type="file" name="fileToUpload" id="fileToUpload" class="upload" accept=".7z"></div>
                     </div>
                 </div>
                 <input id="source" name="source" type="hidden" value=""></input>
@@ -115,7 +164,7 @@ $( document ).ready(function() {
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="$('form[name=\'fileForm\']').submit();">Submit</button>
+        <button type="button" class="btn btn-success" data-dismiss="modal" onclick="$('form[name=\'fileForm\']').submit();">Submit</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
@@ -123,26 +172,54 @@ $( document ).ready(function() {
   </div>
 </div>
 
-<style>
-.fileUpload {
-    position: relative;
-    overflow: hidden;
-    margin: 10px;
-}
-.fileUpload input.upload {
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 0;
-    padding: 0;
-    font-size: 20px;
-    cursor: pointer;
-    opacity: 0;
-    filter: alpha(opacity=0);
-    background: #f44c0e;
-}
 
-</style>
+
+
+<!-- Deploy Modal -->
+<div id="deploypack" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">App Deploy</h4>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+            <div class="col-xs-4">
+                <label for="instancename" >Instance Name</label>
+                <input id="instancename">
+            </div>
+            <div class="col-xs-4">
+            </div>
+            <div class="col-xs-4">
+            </div>
+        </div>
+        <div class="row">
+            <hr>
+        </div>
+        <div class="row">
+            <div class="col-xs-4">
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"  data-toggle="tooltip" title="Choose task type">
+                    <span id="clusterchoice">Choose Cluster</span> <span class="caret"></span></button>
+                    <input id="cluster_name_to_deploy" name="cluster_name_to_deploy" type="hidden" value=""></input>
+                    <input id="package_id_to_deploy" name="package_id_to_deploy" type="hidden" value=""></input>
+                <ul class="dropdown-menu" role="menu">
+                    <clusterlist></clusterlist>
+                </ul>
+            </div>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-dismiss="modal" onclick="DeployPackage();">Deploy</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <script src="js/store.js"></script>
 

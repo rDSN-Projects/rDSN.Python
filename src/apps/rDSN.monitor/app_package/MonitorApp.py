@@ -23,6 +23,8 @@ import mimetypes
 import shutil
 import sqlite3
 import platform
+import uuid
+import socket
 
 sys.path.append(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + '/app_package')
 
@@ -425,20 +427,21 @@ class PageStoreHandler(BaseHandler):
         try:
             conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
             c = conn.cursor()
-            c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text)")
+            c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text)")
 
             c.execute("SELECT * FROM pack WHERE name = '" + file_name + "'")
             if c.fetchall()!=[]:
                 conn.close()
                 self.response.write('Upload fail! App "'+ file_name +'" already exists!')
                 return
-
-            c.execute("INSERT INTO pack VALUES ('" + file_name + "','" + author + "','" + description + "');")
+        
+            uuid_val = str(uuid.uuid1())
+            c.execute("INSERT INTO pack VALUES ('" + file_name + "','" + author + "','" + description + "','" + uuid_val + "');")
             conn.commit()
 
             conn.close()
 
-            savedFile = open(pack_dir + file_name + '.7z', 'wb')
+            savedFile = open(pack_dir + uuid_val + '.7z', 'wb')
             savedFile.write(raw_file)
             savedFile.close()
             
@@ -457,9 +460,9 @@ class PageStoreHandler(BaseHandler):
             if loc_of_7z =='':
                 self.response.write('Error: cannot find '+exe_of_7z)
 
-            subprocess.call([loc_of_7z,'x', pack_dir + file_name + '.7z','-y','-o'+pack_dir + '/' + file_name])
+            subprocess.call([loc_of_7z,'x', pack_dir + uuid_val + '.7z','-y','-o'+pack_dir + '/' + uuid_val])
 
-            iconFile = open(GetMonitorDirPath()+'/local/pack/'+ file_name + '.jpg', 'wb')
+            iconFile = open(GetMonitorDirPath()+'/local/pack/'+ uuid_val + '.jpg', 'wb')
             iconFile.write(raw_icon)
             iconFile.close()
 
@@ -569,9 +572,9 @@ class ApiLoadPackHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text)")
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text)")
         for pack in c.execute('SELECT * FROM pack'):
-            packList.append({'name':pack[0],'author':pack[1],'description':pack[2]})
+            packList.append({'name':pack[0],'author':pack[1],'description':pack[2],'uuid':pack[3]})
         conn.close()
         
         self.SendJson(packList)    
@@ -583,20 +586,56 @@ class ApiDelPackHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text)")
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text)")
+
+        c.execute("SELECT * FROM pack WHERE name = '" + packName + "'")
+        packInfo = c.fetchone()
+        if packInfo==[]:
+            conn.close()
+            self.response.write('Delete fail! App "'+ packName +'" doesn\'t exist!')
+            return
+
         c.execute("DELETE FROM pack WHERE name = '" + packName + "';")
         conn.commit()
         conn.close()
 
         try:
-            shutil.rmtree(os.path.join(packDir,packName))
-            os.remove(os.path.join(packDir,packName+'.jpg'))
-            os.remove(os.path.join(packDir,packName+'.7z'))
+            shutil.rmtree(os.path.join(packDir,packInfo[3]))
+            os.remove(os.path.join(packDir,packInfo[3]+'.jpg'))
+            os.remove(os.path.join(packDir,packInfo[3]+'.7z'))
         
             self.response.write('success')
         except:
             self.response.write('fail')
         
+class ApiDeployPackHandler(BaseHandler):
+    def post(self):
+        serviceName = self.request.get('name')
+        package_id = self.request.get('id')
+        clusterName = self.request.get('cluster_name')
+
+        package_full_path = os.path.join(GetMonitorDirPath,'/local/pack/',package_id+'.7z')
+        package_server = socket.gethostbyname(socket.gethostname())
+
+        self.response.write('success')
+
+
+class ApiClusterlistHandler(BaseHandler):
+    def post(self):
+        clusterList = []
+        clusterList.append({'name':'Cluster1','type':'kubenetes'})
+        self.SendJson(clusterList)
+
+class ApiServicelistHandler(BaseHandler):
+    def post(self):
+        serviceList = []
+        instance_name = 'testrun'
+        package_name = 'rdsn'
+        cluster_name = 'cluster1'
+        state = 'deployed'
+        error = ''
+        serviceList.append({'instance_name':instance_name,'package_name':package_name,'cluster_name':cluster_name,'state':state,'error':error})
+        self.SendJson(serviceList)
 
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(GetMonitorDirPath() + "/static")
@@ -629,6 +668,9 @@ def start_http_server(portNum):
     ('/api/view/del', ApiDelViewHandler),
     ('/api/pack/load', ApiLoadPackHandler),
     ('/api/pack/del', ApiDelPackHandler),
+    ('/api/pack/deploy', ApiDeployPackHandler),
+    ('/api/clusterlist', ApiClusterlistHandler),
+    ('/api/servicelist', ApiServicelistHandler),
 
     ('/app/(.+)', AppStaticFileHandler),
     ('/local/(.+)', LocalStaticFileHandler),
