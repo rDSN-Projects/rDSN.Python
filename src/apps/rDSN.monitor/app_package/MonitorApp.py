@@ -26,6 +26,11 @@ import platform
 
 sys.path.append(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + '/app_package')
 
+#path helper functions
+def GetMonitorDirPath():
+    return os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+
+#jinja helper functions
 def jinja_max(a,b):
     return max(a,b)
 
@@ -35,10 +40,13 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True)
 JINJA_ENVIRONMENT.globals.update(jinja_max=jinja_max)
 
-class AppStaticFileHandler(webapp2.RequestHandler):
+
+class StaticFileHandler(webapp2.RequestHandler):
+    path = ''
     def get(self, path):
-        abs_path = os.path.abspath(os.path.join('./', path))
-        if os.path.isdir(abs_path) or abs_path.find(os.getcwd()) != 0:
+        abs_path = os.path.abspath(os.path.join(self.path, path))
+        print abs_path
+        if os.path.isdir(abs_path)  != 0:
             self.response.set_status(403)
             return
         try:
@@ -48,6 +56,18 @@ class AppStaticFileHandler(webapp2.RequestHandler):
             f.close()
         except:
             self.response.set_status(404)
+
+class AppStaticFileHandler(StaticFileHandler):
+    def __init__(self, request, response):
+        # Set self.request, self.response and self.app.
+        self.initialize(request, response)
+        self.path = './'
+
+class LocalStaticFileHandler(StaticFileHandler):
+    def __init__(self, request, response):
+        # Set self.request, self.response and self.app.
+        self.initialize(request, response)
+        self.path = GetMonitorDirPath() + '/local/'
 
 #webapp2 handlers
 
@@ -391,9 +411,9 @@ class PageStoreHandler(BaseHandler):
         author = self.request.get('author')
         description = self.request.get('description')
 
-        pack_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'
+        pack_dir = GetMonitorDirPath()+'/local/pack/'
         try:
-            conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+            conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
             c = conn.cursor()
             c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text)")
 
@@ -429,7 +449,7 @@ class PageStoreHandler(BaseHandler):
 
             subprocess.call([loc_of_7z,'x', pack_dir + file_name + '.7z','-y','-o'+pack_dir + '/' + file_name])
 
-            iconFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'+ file_name + '.jpg', 'wb')
+            iconFile = open(GetMonitorDirPath()+'/local/pack/'+ file_name + '.jpg', 'wb')
             iconFile.write(raw_icon)
             iconFile.close()
 
@@ -497,7 +517,7 @@ class ApiSaveViewHandler(BaseHandler):
         graphtype = self.request.get('graphtype')
         interval = self.request.get('interval')
 
-        conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
         c.execute("DELETE FROM view WHERE name = '" + name + "';")
@@ -513,7 +533,7 @@ class ApiLoadViewHandler(BaseHandler):
     def post(self): 
         viewList = []
 
-        conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
         for view in c.execute('SELECT * FROM view'):
@@ -524,7 +544,7 @@ class ApiLoadViewHandler(BaseHandler):
 class ApiDelViewHandler(BaseHandler):
     def post(self): 
         name = self.request.get('name')
-        conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
         c.execute("DELETE FROM view WHERE name = '" + name + "';")
@@ -537,7 +557,7 @@ class ApiLoadPackHandler(BaseHandler):
     def post(self):
         packList = []
 
-        conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text)")
         for pack in c.execute('SELECT * FROM pack'):
@@ -549,9 +569,9 @@ class ApiLoadPackHandler(BaseHandler):
 class ApiDelPackHandler(BaseHandler):
     def post(self):
         packName = self.request.get('name')
-        packDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/pack/'
+        packDir = GetMonitorDirPath()+'/local/pack/'
 
-        conn = sqlite3.connect(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text)")
         c.execute("DELETE FROM pack WHERE name = '" + packName + "';")
@@ -600,7 +620,8 @@ def start_http_server(portNum):
     ('/api/pack/load', ApiLoadPackHandler),
     ('/api/pack/del', ApiDelPackHandler),
 
-    ('/app/(.+)', AppStaticFileHandler)
+    ('/app/(.+)', AppStaticFileHandler),
+    ('/local/(.+)', LocalStaticFileHandler),
 ], debug=True)
 
     app_list = Cascade([static_app, web_app])

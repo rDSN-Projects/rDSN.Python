@@ -40,7 +40,7 @@ function loadPackages() {
             var message = JSON.parse(data);
 	        for (var i = 0; i < message.length; i++) {
                 tableHTML = tableHTML + '<tr id=' + message[i].name + '>' 
-                + '<td><img src="/app/app_package/local/pack/' + message[i].name + '.jpg" width="50" height="50" ></td>' 
+                + '<td><img src="local/pack/' + message[i].name + '.jpg" width="50" height="50" ></td>' 
                 + '<td>' + message[i].name + '</td>' 
                 + '<td>' + message[i].author + '</td>'
                 + '<td>' + message[i].description + '</td>'
