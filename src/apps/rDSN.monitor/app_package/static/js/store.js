@@ -45,7 +45,7 @@ function loadPackages() {
                 + '<td>' + message[i].author + '</td>'
                 + '<td>' + message[i].description + '</td>'
                 + '<td><span class="glyphicon glyphicon-gift" aria-hidden="true" onclick="window.location.href = \'fileview.html?working_dir=pack/' + message[i].uuid + '&root_dir=local\';"></span></td>'
-                + '<td><span class="glyphicon glyphicon-flash" aria-hidden="true" onclick=";"></span></td>'
+                + '<td><span class="glyphicon glyphicon-flash" aria-hidden="true" onclick="window.location.href = \'service.html\';"></span></td>'
                 + '<td><span class="glyphicon glyphicon-send" aria-hidden="true" onclick="SetPackageID();LoadCluster();$(\'#deploypack\').modal(\'show\');"></span></td>'
                 + '<td><span class="glyphicon glyphicon-remove" aria-hidden="true" onclick="RemovePackage(\'' + message[i].name + '\');"></span></td>'
                 + '</tr>';
@@ -72,7 +72,11 @@ function RemovePackage(name) {
 function DeployPackage(name,id,cluster_name) {
     $.post("/api/pack/deploy", { name: name, id: id, cluster_name: cluster_name
         }, function(data){ 
-            
+            data = JSON.parse(data);
+            if (data['error']=='')
+            {
+                window.location.href = 'service.html';
+            }
         }
     );
 }
@@ -85,7 +89,7 @@ function LoadCluster() {
     $.post("/api/clusterlist", { 
         command:""
         }, function(data){ 
-            data = JSON.parse(data);
+            data = JSON.parse(data)['clusters'];
             result = "";
             for(var cluster in data)
             {
@@ -175,3 +179,13 @@ $(function () {
     init();
     });
 });
+
+
+function getClusterType(){
+    var clusterTypeList = [];
+    $("#check-list-box li.active").each(function(idx, li) {
+            clusterTypeList.push($(li).attr('index'));
+        });
+    document.forms["fileForm"]["cluster_type"].value = JSON.stringify(clusterTypeList);
+    
+}

@@ -422,12 +422,16 @@ class PageStoreHandler(BaseHandler):
         file_name = self.request.get('file_name')
         author = self.request.get('author')
         description = self.request.get('description')
+        cluster_type = self.request.get('cluster_type')
 
         pack_dir = GetMonitorDirPath()+'/local/pack/'
+        if not os.path.exists(pack_dir):
+            os.makedirs(pack_dir)
+
         try:
             conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
             c = conn.cursor()
-            c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text)")
+            c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text)")
 
             c.execute("SELECT * FROM pack WHERE name = '" + file_name + "'")
             if c.fetchall()!=[]:
@@ -436,7 +440,7 @@ class PageStoreHandler(BaseHandler):
                 return
         
             uuid_val = str(uuid.uuid1())
-            c.execute("INSERT INTO pack VALUES ('" + file_name + "','" + author + "','" + description + "','" + uuid_val + "');")
+            c.execute("INSERT INTO pack VALUES ('" + file_name + "','" + author + "','" + description + "','" + uuid_val + "','" + cluster_type +  "');")
             conn.commit()
 
             conn.close()
@@ -572,9 +576,9 @@ class ApiLoadPackHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text)")
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text)")
         for pack in c.execute('SELECT * FROM pack'):
-            packList.append({'name':pack[0],'author':pack[1],'description':pack[2],'uuid':pack[3]})
+            packList.append({'name':pack[0],'author':pack[1],'description':pack[2],'uuid':pack[3],'cluster_type':pack[4]})
         conn.close()
         
         self.SendJson(packList)    
@@ -586,7 +590,7 @@ class ApiDelPackHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text)")
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text)")
 
         c.execute("SELECT * FROM pack WHERE name = '" + packName + "'")
         packInfo = c.fetchone()
@@ -610,21 +614,32 @@ class ApiDelPackHandler(BaseHandler):
         
 class ApiDeployPackHandler(BaseHandler):
     def post(self):
-        serviceName = self.request.get('name')
+        name = self.request.get('name')
         package_id = self.request.get('id')
-        clusterName = self.request.get('cluster_name')
+        cluster_name = self.request.get('cluster_name')
 
-        package_full_path = os.path.join(GetMonitorDirPath,'/local/pack/',package_id+'.7z')
+        package_full_path = GetMonitorDirPath() + '/local/pack/' + package_id + '.7z'
         package_server = socket.gethostbyname(socket.gethostname())
 
+        req = {"deploy_request":{"cluster_name":cluster_name, "name":name, "package_full_path":package_full_path, "package_id":package_id, "package_server":package_server}}
+        #self.response.write(Native.dsn_cli_run('deploy ' + json.dumps(req)))
         self.response.write('success')
 
+class ApiUndeployPackHandler(BaseHandler):
+    def post(self):
+        service_name = self.request.get('service_name')
+
+        req = {"service_name":service_name}
+        #self.response.write(Native.dsn_cli_run('undeploy ' + json.dumps(req)))
+        self.response.write('success')
 
 class ApiClusterlistHandler(BaseHandler):
     def post(self):
-        clusterList = []
-        clusterList.append({'name':'Cluster1','type':'kubenetes'})
+        clusterList = {'clusters':[{'name':'Cluster2','type':'kubenetes'}]}
+        #req = {"format":""}
+        #self.response.write(Native.dsn_cli_run('cluster_list ' + json.dumps(req)))
         self.SendJson(clusterList)
+        
 
 class ApiServicelistHandler(BaseHandler):
     def post(self):
@@ -634,6 +649,9 @@ class ApiServicelistHandler(BaseHandler):
         cluster_name = 'cluster1'
         state = 'deployed'
         error = ''
+
+        #req = {"package_id":""}
+        #self.response.write(Native.dsn_cli_run('service_list ' + json.dumps(req)))
         serviceList.append({'instance_name':instance_name,'package_name':package_name,'cluster_name':cluster_name,'state':state,'error':error})
         self.SendJson(serviceList)
 
@@ -669,6 +687,7 @@ def start_http_server(portNum):
     ('/api/pack/load', ApiLoadPackHandler),
     ('/api/pack/del', ApiDelPackHandler),
     ('/api/pack/deploy', ApiDeployPackHandler),
+    ('/api/pack/undeploy', ApiUndeployPackHandler),
     ('/api/clusterlist', ApiClusterlistHandler),
     ('/api/servicelist', ApiServicelistHandler),
 

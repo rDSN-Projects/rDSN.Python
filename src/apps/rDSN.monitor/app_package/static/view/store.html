@@ -159,12 +159,13 @@ $( document ).ready(function() {
                 <input id="file_name" name="file_name" type="hidden" value=""></input>
                 <input id="author" name="author" type="hidden" value=""></input>
                 <input id="description" name="description" type="hidden" value=""></input>
+                <input id="cluster_type" name="cluster_type" type="hidden" value=""></input>
                 </form>
             </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-dismiss="modal" onclick="$('form[name=\'fileForm\']').submit();">Submit</button>
+        <button type="button" class="btn btn-success" data-dismiss="modal" onclick="getClusterType();$('form[name=\'fileForm\']').submit();">Submit</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
