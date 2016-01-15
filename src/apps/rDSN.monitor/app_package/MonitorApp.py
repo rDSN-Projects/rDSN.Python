@@ -626,15 +626,14 @@ class ApiDeployPackHandler(BaseHandler):
         package_server = Native.dsn_primary_address()
 
         req = {"deploy_request":{"cluster_name":cluster_name, "name":name, "package_full_path":package_full_path, "package_id":package_id, "package_server":package_server}}
-        print json.dumps(req)
-        self.response.write(Native.dsn_cli_run('server.deploy ' + json.dumps(req)))
+        self.response.write(Native.dsn_cli_run('server.deploy ' + json.dumps(req).replace(" ", "")))
 
 class ApiUndeployPackHandler(BaseHandler):
     def post(self):
         service_name = self.request.get('service_name')
 
         req = {"service_name":service_name}
-        self.response.write(Native.dsn_cli_run('server.undeploy ' + json.dumps(req)))
+        self.response.write(Native.dsn_cli_run('server.undeploy ' + json.dumps(req).replace(" ", "")))
 
 
 def start_http_server(portNum):  
