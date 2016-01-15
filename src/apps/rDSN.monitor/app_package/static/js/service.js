@@ -2,7 +2,7 @@ updateTable();
 
 function updateTable()
 {
-    req = {"package_id":""}
+    req = {"package_id":""};
     $.post("/api/cli", { 
         command:"server.service_list " + JSON.stringify(req)
         }, function(data){ 
@@ -35,7 +35,7 @@ function undeploy(service_name) {
     $.post("/api/pack/undeploy", { 
         service_name:service_name
         }, function(data){ 
-            if(data == 'ok')
+            if(data == 'ERR_OK')
             {
                 $('#'+service_name).remove();
             }

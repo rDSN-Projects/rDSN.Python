@@ -535,6 +535,10 @@ class ApiSaveViewHandler(BaseHandler):
         graphtype = self.request.get('graphtype')
         interval = self.request.get('interval')
 
+        local_dir = GetMonitorDirPath()+'/local/'
+        if not os.path.exists(local_dir):
+            os.makedirs(local_dir)
+
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
@@ -551,6 +555,10 @@ class ApiLoadViewHandler(BaseHandler):
     def post(self): 
         viewList = []
 
+        local_dir = GetMonitorDirPath()+'/local/'
+        if not os.path.exists(local_dir):
+            os.makedirs(local_dir)
+
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
@@ -562,6 +570,11 @@ class ApiLoadViewHandler(BaseHandler):
 class ApiDelViewHandler(BaseHandler):
     def post(self): 
         name = self.request.get('name')
+
+        local_dir = GetMonitorDirPath()+'/local/'
+        if not os.path.exists(local_dir):
+            os.makedirs(local_dir)
+
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
@@ -575,6 +588,10 @@ class ApiLoadPackHandler(BaseHandler):
     def post(self):
         packList = []
 
+        pack_dir = GetMonitorDirPath()+'/local/pack/'
+        if not os.path.exists(pack_dir):
+            os.makedirs(pack_dir)
+
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text)")
@@ -587,7 +604,9 @@ class ApiLoadPackHandler(BaseHandler):
 class ApiDelPackHandler(BaseHandler):
     def post(self):
         packName = self.request.get('name')
-        packDir = GetMonitorDirPath()+'/local/pack/'
+        pack_dir = GetMonitorDirPath()+'/local/pack/'
+        if not os.path.exists(pack_dir):
+            os.makedirs(pack_dir)
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
@@ -605,9 +624,9 @@ class ApiDelPackHandler(BaseHandler):
         conn.close()
 
         try:
-            shutil.rmtree(os.path.join(packDir,packInfo[3]))
-            os.remove(os.path.join(packDir,packInfo[3]+'.jpg'))
-            os.remove(os.path.join(packDir,packInfo[3]+'.7z'))
+            shutil.rmtree(os.path.join(pack_dir,packInfo[3]))
+            os.remove(os.path.join(pack_dir,packInfo[3]+'.jpg'))
+            os.remove(os.path.join(pack_dir,packInfo[3]+'.7z'))
         
             self.response.write('success')
         except:
@@ -624,7 +643,7 @@ class ApiDeployPackHandler(BaseHandler):
         #in order to use dsn_primary_address, use one empty command to trigger mimic 
         mimic_trigger = Native.dsn_cli_run('')
         package_server = Native.dsn_primary_address()
-
+        
         req = {"deploy_request":{"cluster_name":cluster_name, "name":name, "package_full_path":package_full_path, "package_id":package_id, "package_server":package_server}}
         self.response.write(Native.dsn_cli_run('server.deploy ' + json.dumps(req).replace(" ", "")))
 

@@ -79,9 +79,13 @@ function DeployPackage(name,id,cluster_name) {
     $.post("/api/pack/deploy", { name: name, id: id, cluster_name: cluster_name
         }, function(data){ 
             data = JSON.parse(data);
-            if (data['error']=='ok')
+            if (data['error']=='ERR_OK')
             {
                 window.location.href = 'service.html';
+            }
+            else
+            {
+                alert("Deploy failed, Error code: " + data['error']);
             }
         }
     )
