@@ -46,7 +46,7 @@ function loadPackages() {
                 + '<td>' + message[i].description + '</td>'
                 + '<td><span class="glyphicon glyphicon-gift" aria-hidden="true" onclick="window.location.href = \'fileview.html?working_dir=pack/' + message[i].uuid + '&root_dir=local\';"></span></td>'
                 + '<td><span class="glyphicon glyphicon-flash" aria-hidden="true" onclick="window.location.href = \'service.html\';"></span></td>'
-                + '<td><span class="glyphicon glyphicon-send" aria-hidden="true" onclick="SetPackageID();LoadCluster();$(\'#deploypack\').modal(\'show\');"></span></td>'
+                + '<td><span class="glyphicon glyphicon-send" aria-hidden="true" onclick="SetPackageID();LoadCluster(\'' + encodeURIComponent(JSON.stringify(message[i].cluster_type)) + '\');$(\'#deploypack\').modal(\'show\');"></span></td>'
                 + '<td><span class="glyphicon glyphicon-remove" aria-hidden="true" onclick="RemovePackage(\'' + message[i].name + '\');"></span></td>'
                 + '</tr>';
                 
@@ -73,7 +73,7 @@ function DeployPackage(name,id,cluster_name) {
     $.post("/api/pack/deploy", { name: name, id: id, cluster_name: cluster_name
         }, function(data){ 
             data = JSON.parse(data);
-            if (data['error']=='')
+            if (data['error']=='ok')
             {
                 window.location.href = 'service.html';
             }
@@ -85,21 +85,43 @@ function SetPackageID(id) {
     $('#package_id_to_deploy').val(id);
 }
 
-function LoadCluster() {
-    $.post("/api/clusterlist", { 
-        command:""
-        }, function(data){ 
+function LoadCluster(cluster_type_list) {
+    req = {"format":""};
+    $.post("/api/cli", { 
+        command:"cluster_list " + JSON.stringify(req)
+        }, function(data){
+            if(~data.indexOf('unknown command'))
+            {
+                alert('Error: unknown command cluster_list');
+                return;
+            } 
             data = JSON.parse(data)['clusters'];
             result = "";
             for(var cluster in data)
             {
-                var clusterDisplay = data[cluster]['name'] + '(' + data[cluster]['type'] + ')'
-                result += '<li><a href="#" onclick="$(\'#clusterchoice\').text(\'' + clusterDisplay + '\');$(\'#cluster_name_to_deploy\').val(\'' + data[cluster]['name'] + '\');">' + clusterDisplay + '</a></li>' ;
+                var clusterDisplay = data[cluster]['name'] + '(' + data[cluster]['type'] + ')';
+                result += '<li ';
+                var if_allowed = (cluster_type_list.indexOf(data[cluster]['type']) == -1);
+                if (if_allowed)
+                {
+                    result += 'class="disabled"';
+                }
+                result += '><a href="#" ';
+                if (!if_allowed)
+                {
+                    result += 'onclick="$(\'#clusterchoice\').text(\'' + clusterDisplay + '\');$(\'#cluster_name_to_deploy\').val(\'' + data[cluster]['name'] + '\');"'
+                }
+                result += '>' + clusterDisplay + '</a></li>' ;
             }
-            $('clusterlist').html(result);
+            $('#cluster_list ul > li').empty();
+            $('#cluster_list ul').append(result);
             
         }
-    );
+    )
+    .fail(function() {
+        alert( "Error: lost connection to the server" );
+        return;
+    });
 }
 
 document.getElementById("iconToUpload").onchange = function () {

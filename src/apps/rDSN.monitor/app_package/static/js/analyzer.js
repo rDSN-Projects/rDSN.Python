@@ -319,7 +319,7 @@ function duplicateCounter() {
 }
 
 function RunPerformanceView() {
-    var url = "view.html?"
+    var url = "counterview.html?"
 
     var graphtype = $('input[name=graphtype]:checked').val();
     if (graphtype==undefined)
@@ -387,7 +387,7 @@ function ImportView(viewname) {
 
 function PlayView(viewname) {
 
-    var url = "view.html?"
+    var url = "counterview.html?"
 
     var graphtype = viewList[viewname].graphtype;
     if (graphtype==undefined)

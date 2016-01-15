@@ -411,7 +411,7 @@ class PageAnalyzerHandler(BaseHandler):
 
 class PageViewHandler(BaseHandler):
     def get(self):
-        self.render_template('view.html')
+        self.render_template('counterview.html')
         
 class PageStoreHandler(BaseHandler):
     def get(self):
@@ -619,11 +619,13 @@ class ApiDeployPackHandler(BaseHandler):
         cluster_name = self.request.get('cluster_name')
 
         package_full_path = GetMonitorDirPath() + '/local/pack/' + package_id + '.7z'
-        package_server = socket.gethostbyname(socket.gethostname())
+
+        #in order to use dsn_primary_address, use one empty command to trigger mimic 
+        mimic_triger = Native.dsn_cli_run('')
+        package_server = Native.dsn_primary_address()
 
         req = {"deploy_request":{"cluster_name":cluster_name, "name":name, "package_full_path":package_full_path, "package_id":package_id, "package_server":package_server}}
-        #self.response.write(Native.dsn_cli_run('deploy ' + json.dumps(req)))
-        self.response.write('success')
+        self.response.write(Native.dsn_cli_run('deploy ' + json.dumps(req)))
 
 class ApiUndeployPackHandler(BaseHandler):
     def post(self):
@@ -633,27 +635,6 @@ class ApiUndeployPackHandler(BaseHandler):
         #self.response.write(Native.dsn_cli_run('undeploy ' + json.dumps(req)))
         self.response.write('success')
 
-class ApiClusterlistHandler(BaseHandler):
-    def post(self):
-        clusterList = {'clusters':[{'name':'Cluster2','type':'kubenetes'}]}
-        #req = {"format":""}
-        #self.response.write(Native.dsn_cli_run('cluster_list ' + json.dumps(req)))
-        self.SendJson(clusterList)
-        
-
-class ApiServicelistHandler(BaseHandler):
-    def post(self):
-        serviceList = []
-        instance_name = 'testrun'
-        package_name = 'rdsn'
-        cluster_name = 'cluster1'
-        state = 'deployed'
-        error = ''
-
-        #req = {"package_id":""}
-        #self.response.write(Native.dsn_cli_run('service_list ' + json.dumps(req)))
-        serviceList.append({'instance_name':instance_name,'package_name':package_name,'cluster_name':cluster_name,'state':state,'error':error})
-        self.SendJson(serviceList)
 
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(GetMonitorDirPath() + "/static")
@@ -688,8 +669,6 @@ def start_http_server(portNum):
     ('/api/pack/del', ApiDelPackHandler),
     ('/api/pack/deploy', ApiDeployPackHandler),
     ('/api/pack/undeploy', ApiUndeployPackHandler),
-    ('/api/clusterlist', ApiClusterlistHandler),
-    ('/api/servicelist', ApiServicelistHandler),
 
     ('/app/(.+)', AppStaticFileHandler),
     ('/local/(.+)', LocalStaticFileHandler),
