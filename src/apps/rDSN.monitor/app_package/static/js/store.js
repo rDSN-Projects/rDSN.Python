@@ -46,7 +46,7 @@ function loadPackages() {
                 + '<td>' + message[i].description + '</td>'
                 + '<td><span class="glyphicon glyphicon-gift" aria-hidden="true" onclick="window.location.href = \'fileview.html?working_dir=pack/' + message[i].uuid + '&root_dir=local\';"></span></td>'
                 + '<td><span class="glyphicon glyphicon-flash" aria-hidden="true" onclick="window.location.href = \'service.html\';"></span></td>'
-                + '<td><span class="glyphicon glyphicon-send" aria-hidden="true" onclick="SetPackageID();LoadCluster(\'' + encodeURIComponent(JSON.stringify(message[i].cluster_type)) + '\');$(\'#deploypack\').modal(\'show\');"></span></td>'
+                + '<td><span class="glyphicon glyphicon-send" aria-hidden="true" onclick="SetPackageID(\'' + message[i].uuid + '\');LoadCluster(\'' + encodeURIComponent(JSON.stringify(message[i].cluster_type)) + '\');$(\'#deploypack\').modal(\'show\');"></span></td>'
                 + '<td><span class="glyphicon glyphicon-remove" aria-hidden="true" onclick="RemovePackage(\'' + message[i].name + '\');"></span></td>'
                 + '</tr>';
                 
@@ -98,7 +98,7 @@ function SetPackageID(id) {
 function LoadCluster(cluster_type_list) {
     req = {"format":""};
     $.post("/api/cli", { 
-        command:"cluster_list " + JSON.stringify(req)
+        command:"server.cluster_list " + JSON.stringify(req)
         }, function(data){
             if(~data.indexOf('unknown command'))
             {

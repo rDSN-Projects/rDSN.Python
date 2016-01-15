@@ -455,14 +455,15 @@ class PageStoreHandler(BaseHandler):
             os_type = platform.system()
             if os_type=='Windows':
                 exe_of_7z = '7z.exe'
+                for root, dirs, files in os.walk(os.path.dirname(os.getcwd()+"/../")):
+                    if exe_of_7z in files:
+                        loc_of_7z = os.path.join(root, exe_of_7z)
+                        break
             elif os_type=='Linux':
-                exe_of_7z = '7z'
-            for root, dirs, files in os.walk(os.path.dirname(os.getcwd()+"/../")):
-                if exe_of_7z in files:
-                    loc_of_7z = os.path.join(root, exe_of_7z)
-                    break
+                loc_of_7z = '7z'
             if loc_of_7z =='':
                 self.response.write('Error: cannot find '+exe_of_7z)
+                return
 
             subprocess.call([loc_of_7z,'x', pack_dir + uuid_val + '.7z','-y','-o'+pack_dir + '/' + uuid_val])
 
@@ -625,14 +626,15 @@ class ApiDeployPackHandler(BaseHandler):
         package_server = Native.dsn_primary_address()
 
         req = {"deploy_request":{"cluster_name":cluster_name, "name":name, "package_full_path":package_full_path, "package_id":package_id, "package_server":package_server}}
-        self.response.write(Native.dsn_cli_run('deploy ' + json.dumps(req)))
+        print json.dumps(req)
+        self.response.write(Native.dsn_cli_run('server.deploy ' + json.dumps(req)))
 
 class ApiUndeployPackHandler(BaseHandler):
     def post(self):
         service_name = self.request.get('service_name')
 
         req = {"service_name":service_name}
-        self.response.write(Native.dsn_cli_run('undeploy ' + json.dumps(req)))
+        self.response.write(Native.dsn_cli_run('server.undeploy ' + json.dumps(req)))
 
 
 def start_http_server(portNum):  

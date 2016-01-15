@@ -4,7 +4,7 @@ function updateTable()
 {
     req = {"package_id":""}
     $.post("/api/cli", { 
-        command:"service_list " + JSON.stringify(req)
+        command:"server.service_list " + JSON.stringify(req)
         }, function(data){ 
             if(~data.indexOf('unknown command'))
             {
