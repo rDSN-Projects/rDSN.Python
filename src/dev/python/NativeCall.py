@@ -151,5 +151,8 @@ class Native:
     def dsn_app_loader_signal():
         return dll_core.dsn_app_loader_signal()
 
-
+    @staticmethod
+    def dsn_primary_address():
+        dll_helper.dsn_run_helper.restype = c_ulonglong
+        return dll_core.dsn_primary_address()
 

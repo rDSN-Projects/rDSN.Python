@@ -14,11 +14,6 @@
 <link href="http://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
 <link href="css/bootstrap-tour.min.css" rel="stylesheet" type="text/css">
 
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <!-- Load d3.js and c3.js -->
 <script src="js/d3.min.js"></script>
 <script src="js/c3.min.js"></script>
@@ -48,6 +43,11 @@ body {
   }  
 </style>
 <body>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <script>
 // Instance the tour
 var StartUpTour = new Tour({
@@ -90,36 +90,44 @@ TimeOutTour.init();
 	</div>
 	<div>
 		<ul class="nav navbar-nav">
-			<li><a href="main.html" data-toggle="tooltip" title="A overview of the whole system">Overview</a></li>
-			<li><a href="table.html" data-toggle="tooltip" title="A table showing all counter info for all task codes">Table</a></li>
-			<li><a href="perValue1.html?task_code={{TASK_CODE}}" data-toggle="tooltip" title="A scatter plot showing counter sample data">Latency</a></li>
-			<li><a href="perValue2.html?task_code={{TASK_CODE}}" data-toggle="tooltip" title="A real-time line plot showing counter sample data">Realtime</a></li>
-			<li><a href="perValue3.html?task_code={{TASK_CODE}}" data-toggle="tooltip" title="A bar plot showing latency time structure">Latency Breakdown</a></li>
-			<li><a href="perValue5.html" data-toggle="tooltip" title="A bar plot showing all queues sorted by task pending number">Queue</a></li>
-			<li><a href="consoleCli.html" data-toggle="tooltip" title="A query interface, type h for more info">Cli</a></li>
-			<li><a href="consoleBash.html" data-toggle="tooltip" title="A bash interface">Bash</a></li>
-			<li><a href="editor.html" data-toggle="tooltip" title="An online editor for editing files">Vim</a></li>
-			<li><a href="configure.html" data-toggle="tooltip" title="Show all configuration with descriptions">Configuration</a></li>
-			<li><a href="selectDisplay.html" data-toggle="tooltip" title="Show a dynamic graph with selected counters">selectDisplay</a></li>
-			<li><a href="clusterinfo.html" data-toggle="tooltip" title="Show cluster info">clusterinfo</a></li>
+			<li><a href="main.html" data-toggle="tooltip bottom" title="A overview of the whole system"><span class="glyphicon glyphicon-home"></span> Overview</a></li>
+            <li class="dropdown">
+			    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-wrench"></span> Tool<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="analyzer.html" data-toggle="tooltip right" title="Build your own counter view with analyzer!"><span class="glyphicon glyphicon-star"></span>Analyzer</a></li>
+                    <li><a href="cli.html" data-toggle="tooltip right" title="A query interface, type h for more info"><span class="glyphicon glyphicon-console"></span> Cli</a></li>
+                    <li><a href="bash.html" data-toggle="tooltip right" title="A bash interface"><span class="glyphicon glyphicon-console"></span> Bash</a></li>
+                    <li><a href="configure.html" data-toggle="tooltip right" title="Show all configuration with descriptions"><span class="glyphicon glyphicon-list-alt"></span> Configuration</a></li>
+                </ul>
+            </li>
+            <li class="dropdown">
+			    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-fire"></span> Beta<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="table.html" data-toggle="tooltip right" title="A table showing all counter info for all task codes"><span class="glyphicon glyphicon-align-justify"></span>Table</a></li>
+                    <li><a href="sample.html?task_code={{TASK_CODE}}" data-toggle="tooltip right" title="A scatter plot showing counter sample data"><span class="glyphicon glyphicon-picture"></span>Sample</a></li>
+                    <li><a href="value.html?task_code={{TASK_CODE}}" data-toggle="tooltip right" title="A real-time line plot showing counter sample data"><span class="glyphicon glyphicon-eye-open"></span>Value</a></li>
+                    <li><a href="bar.html?task_code={{TASK_CODE}}" data-toggle="tooltip right" title="A bar plot showing latency time structure"><span class="glyphicon glyphicon-indent-left"></span>Breakdown</a></li>
+                    <li><a href="queue.html" data-toggle="tooltip right" title="A bar plot showing all queues sorted by task pending number"><span class="glyphicon glyphicon-signal"></span>Queue</a></li>
+			        <li><a href="editor.html" data-toggle="tooltip right" title="An online editor for editing files"><span class="glyphicon glyphicon-pencil"></span>Vim</a></li>
+                </ul>
+            </li>
+			<li><a href="fileview.html" data-toggle="tooltip bottom" title="Show app folder content"><span class="glyphicon glyphicon-folder-open"></span> AppFolder</a></li>
+			<li><a href="store.html" data-toggle="tooltip bottom" title="Go to service store to deploy"><span class="glyphicon glyphicon-shopping-cart"></span> Store</a></li>
+			<li><a href="service.html" data-toggle="tooltip bottom" title="Go to service store to deploy"><span class="glyphicon glyphicon-cloud"></span> Service</a></li>
 
 		</ul>
 	</div>
 </nav>
-<div class="container">
 
-	<div class="page-header">
-	</div>
-
-	<div class="page-header">
-        <h1> <font color= #333333><center>rDSN Monitor Panel</center></font>
-			<small><center><a href="https://github.com/Microsoft/rDSN" ><font color= #778899>https://github.com/Microsoft/rDSN</font></a></center></small>
-		</h1>
-	</div>
-
-</div>
 {% block body %}
 {% endblock %}
+<script>
+$(document).ready(function(){
+
+        $('[data-toggle="tooltip bottom"]').tooltip({placement: "bottom"}); 
+        $('[data-toggle="tooltip right"]').tooltip({placement: "right"}); 
+});
+</script>
 </body>
 </html>
 

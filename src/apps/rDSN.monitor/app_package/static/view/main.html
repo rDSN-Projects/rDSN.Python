@@ -1,16 +1,30 @@
 {% extends "static/view/template.html" %}
 {% block body %}
+<div class="container">
+
+	<div class="page-header">
+	</div>
+
+	<div class="page-header">
+        <h1> <font color= #333333><center>rDSN Monitor Panel</center></font>
+			<small><center><a href="https://github.com/Microsoft/rDSN" ><font color= #778899>https://github.com/Microsoft/rDSN</font></a></center></small>
+		</h1>
+	</div>
+
+</div>
+
 <div class="jumbotron masthead"  style="background-image: url(img/background.jpg)">
 	<div class="container">
 		<h1><font color= white><center>rDSN</center></font></h1>
-		<h3><font color= white><center>an open framework for quickly building and managing </center></font></h3>
+		<h3><font color= white><center>An open framework for quickly building and managing </center></font></h3>
 		<h3><font color= white><center> high performance and robust distributed systems.</center></font></h3>
 
 	</div>
 </div>
+
 <script src="js/liquidFillGauge.js" language="JavaScript"></script>
 <div class="container-fluid bg-3 text-center"> 
-  <h2>System Utility Overview</h2>
+  <h2>Node Utility Overview</h2>
   <div class="row">
     <div class="col-sm-4">
       <h4>CPU Usage</h4>
@@ -27,29 +41,6 @@
   </div>
 </div>
 <div class="container-fluid bg-3"> 
-  <h2>Disk I/O</h2>
-    <table class="table">
-    <thead>
-      <tr>
-        <th>read_count</th>
-        <th>write_count</th>
-        <th>read_bytes</th>
-        <th>write_bytes</th>
-        <th>read_time(ms)</th>
-        <th>write_time(ms)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><div id="diskio0"></div</td>
-        <td><div id="diskio1"></div</td>
-        <td><div id="diskio2"></div</td>
-        <td><div id="diskio3"></div</td>
-        <td><div id="diskio4"></div</td>
-        <td><div id="diskio5"></div</td>
-      </tr>
-    </tbody>
-  </table>
   <h2>Network I/O</h2>
    <table class="table">
     <thead>
@@ -104,14 +95,11 @@ var config1 = liquidFillGaugeDefaultSettings();
     
 NewValue();
     function NewValue(){
-$.get("psutil", function(data, status){
+$.get("/api/psutil", function(data, status){
 	var message = JSON.parse(data);
     gauge1.update(message.cpu);
     gauge2.update(message.memory);
     gauge3.update(message.disk);
-    for (i = 0; i < 6; i++) { 
-    document.getElementById("diskio"+i.toString()).innerHTML = message.diskio[i];
-    }
     for (i = 0; i < 8; i++) { 
     document.getElementById("networkio"+i.toString()).innerHTML = message.networkio[i];
     }
@@ -156,7 +144,7 @@ $.get("psutil", function(data, status){
     <div class="col-sm-8">
       <h2>New comers?</h2>
       <h4>Follow a simple guidance to fully understand the system</h4> 
-      <button class="btn btn-default btn-lg">Start Now</button>
+      <button class="btn btn-default btn-lg" onclick='StartUpTour.start(true);'>Start Now</button>
     </div>
     <div class="col-sm-4">
       <span class="glyphicon glyphicon-blackboard logo"></span>
@@ -183,12 +171,14 @@ $.get("psutil", function(data, status){
   <div class="row">
     <div class="col-sm-4">
       <span class="glyphicon glyphicon-home logo-small"></span>
-      <h4>Quick Start-up</h4>
+      <div id="StartUp_Start"></div>
+      <h4><a href='javascript:StartUpTour.start(true);'>Quick Start-up</a></h4>
       <p>Follow a simple guidance to fully understand the system</p>
     </div>
     <div class="col-sm-4">
       <span class="glyphicon glyphicon-pushpin logo-small"></span>
-      <h4>Time-out analysis</h4>
+      <div id="TimeOut_Start"></div>
+      <h4><a href='javascript:TimeOutTour.start();'>Time-out analysis</a></h4>
       <p>A complete solution for some external-facing tasks experiencing continuous time-outs</p>
     </div>
   </div>

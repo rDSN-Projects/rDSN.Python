@@ -1,5 +1,18 @@
 {% extends "static/view/template.html" %}
 {% block body %}
+<div class="container">
+
+	<div class="page-header">
+	</div>
+
+	<div class="page-header">
+        <h1> <font color= #333333><center>Data Table</center></font>
+			<small><center><font color= #778899>Here lists all task latency data</font></center></small>
+		</h1>
+	</div>
+
+</div>
+
 <link href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css" rel="stylesheet">
 <div class="dropdown">
 <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"  data-toggle="tooltip" title="Choose percentile type">
@@ -10,7 +23,7 @@
 		<li><a href="?curr_percent=90">90%</a></li>
 		<li><a href="?curr_percent=95">95%</a></li>
 		<li><a href="?curr_percent=99">99%</a></li>
-		<li><a href="?curr_percent=999">999%</a></li>
+		<li><a href="?curr_percent=999">99.9%</a></li>
 	</ul>
 </div>
 <table id="table" class="display" cellspacing="0" width="100%">
