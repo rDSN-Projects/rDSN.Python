@@ -54,9 +54,11 @@ function loadPackages() {
             $("#packList tbody > tr").empty();
             $("#packList tbody").append(tableHTML);
         }
-    );
-
-
+    )
+    .fail(function() {
+        alert( "Error: lost connection to the server" );
+        return;
+    });
 }
 
 function RemovePackage(name) {
@@ -66,7 +68,11 @@ function RemovePackage(name) {
                 $('tr[id="'+name+'"]').remove();
             }
         }
-    );
+    )
+    .fail(function() {
+        alert( "Error: lost connection to the server" );
+        return;
+    });
 }
 
 function DeployPackage(name,id,cluster_name) {
@@ -78,7 +84,11 @@ function DeployPackage(name,id,cluster_name) {
                 window.location.href = 'service.html';
             }
         }
-    );
+    )
+    .fail(function() {
+        alert( "Error: lost connection to the server" );
+        return;
+    });
 }
 
 function SetPackageID(id) {

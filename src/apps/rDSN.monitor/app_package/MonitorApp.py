@@ -621,7 +621,7 @@ class ApiDeployPackHandler(BaseHandler):
         package_full_path = GetMonitorDirPath() + '/local/pack/' + package_id + '.7z'
 
         #in order to use dsn_primary_address, use one empty command to trigger mimic 
-        mimic_triger = Native.dsn_cli_run('')
+        mimic_trigger = Native.dsn_cli_run('')
         package_server = Native.dsn_primary_address()
 
         req = {"deploy_request":{"cluster_name":cluster_name, "name":name, "package_full_path":package_full_path, "package_id":package_id, "package_server":package_server}}
@@ -632,8 +632,7 @@ class ApiUndeployPackHandler(BaseHandler):
         service_name = self.request.get('service_name')
 
         req = {"service_name":service_name}
-        #self.response.write(Native.dsn_cli_run('undeploy ' + json.dumps(req)))
-        self.response.write('success')
+        self.response.write(Native.dsn_cli_run('undeploy ' + json.dumps(req)))
 
 
 def start_http_server(portNum):  
