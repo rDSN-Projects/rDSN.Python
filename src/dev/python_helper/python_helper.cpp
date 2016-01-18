@@ -345,7 +345,7 @@ DSN_PY_API bool dsn_rpc_register_handler_helper(dsn_task_code_t code, const char
 DSN_PY_API PyObject* dsn_cli_run_helper(const char* command_line)
 {
 	const char* str = dsn_cli_run(command_line);
-	PyObject* res = Py_BuildValue("s", dsn_cli_run(command_line));
+	PyObject* res = Py_BuildValue("s", str);
 	dsn_cli_free(str);
 	return res;
 }
