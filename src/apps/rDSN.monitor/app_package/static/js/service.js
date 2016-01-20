@@ -1,8 +1,16 @@
 updateTable();
 
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
 function updateTable()
 {
-    req = {"package_id":""};
+    package_id = getParameterByName("package_id")
+    req = {"package_id":package_id};
     $.post("/api/cli", { 
         command:"server.service_list " + JSON.stringify(req)
         }, function(data){ 
