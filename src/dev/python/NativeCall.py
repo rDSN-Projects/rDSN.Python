@@ -153,6 +153,6 @@ class Native:
 
     @staticmethod
     def dsn_primary_address():
-        dll_helper.dsn_run_helper.restype = c_ulonglong
+        dll_core.dsn_primary_address.restype = c_ulonglong
         return dll_core.dsn_primary_address()
 
