@@ -449,21 +449,8 @@ class PageStoreHandler(BaseHandler):
             savedFile.write(raw_file)
             savedFile.close()
             
-            loc_of_7z = ''
-            exe_of_7z = ''
-            #for windows
-            os_type = platform.system()
-            if os_type=='Windows':
-                exe_of_7z = '7z.exe'
-                for root, dirs, files in os.walk(os.path.dirname(os.getcwd()+"/../")):
-                    if exe_of_7z in files:
-                        loc_of_7z = os.path.join(root, exe_of_7z)
-                        break
-            elif os_type=='Linux':
-                loc_of_7z = '7z'
-            if loc_of_7z =='':
-                self.response.write('Error: cannot find '+exe_of_7z)
-                return
+            #TODO: shall we need some mechanism to detect if 7z are truely installed?
+            loc_of_7z = '7z'
 
             subprocess.call([loc_of_7z,'x', pack_dir + uuid_val + '.7z','-y','-o'+pack_dir + '/' + uuid_val])
 
