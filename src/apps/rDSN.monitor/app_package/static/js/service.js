@@ -41,10 +41,11 @@ function updateTable()
 
 function undeploy(service_name) {
     req = {"service_name":service_name};
-    $.post("/api/pack/undeploy", { 
+    $.post("/api/cli", { 
         command:"server.undeploy " + JSON.stringify(req)
         }, function(data){ 
-            if(data == 'ERR_OK')
+            err = JSON.parse(data)['error'];
+            if(err == 'ERR_OK')
             {
                 $('#'+service_name).remove();
             }
