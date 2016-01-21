@@ -54,9 +54,10 @@ python pip_install_for_windows.py || echo "install pip failed!" && exit /b
 
 cd apps\rDSN.monitor
 echo "[rDSN.Python] install dependency packages" 
-pip install -r requirement.txt || echo "install dependency packages failed!" && exit /b
+python -m pip install -r requirement.txt || echo "install dependency packages failed!" && exit /b
 
 cd ..\..\..
+echo "[rDSN.Python] Successfully installed." 
 goto exit
 
 :error
