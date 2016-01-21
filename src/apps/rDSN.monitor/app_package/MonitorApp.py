@@ -449,11 +449,6 @@ class PageStoreHandler(BaseHandler):
             savedFile.write(raw_file)
             savedFile.close()
             
-            #TODO: shall we need some mechanism to detect if 7z are truely installed?
-            loc_of_7z = '7z'
-
-            subprocess.call([loc_of_7z,'x', pack_dir + uuid_val + '.7z','-y','-o'+pack_dir + '/' + uuid_val])
-
             iconFile = open(GetMonitorDirPath()+'/local/pack/'+ uuid_val + '.jpg', 'wb')
             iconFile.write(raw_icon)
             iconFile.close()
