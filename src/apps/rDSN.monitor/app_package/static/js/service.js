@@ -45,11 +45,8 @@ function undeploy(service_name) {
         command:"server.undeploy " + JSON.stringify(req)
         }, function(data){ 
             err = JSON.parse(data)['error'];
-            if(err == 'ERR_OK')
-            {
-                $('#'+service_name).remove();
-            }
-        }
+            location.reload(false)
+       }
     )
     .fail(function() {
         alert( "Error: lost connection to the server" );

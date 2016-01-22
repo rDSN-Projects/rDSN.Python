@@ -64,9 +64,7 @@ function loadPackages() {
 function RemovePackage(name) {
     $.post("/api/pack/del", { name: name
         }, function(data){ 
-            if(data=='success') {
-                $('tr[id="'+name+'"]').remove();
-            }
+           location.reload(false); 
         }
     )
     .fail(function() {
