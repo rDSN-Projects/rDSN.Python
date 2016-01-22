@@ -661,7 +661,6 @@ def start_http_server(portNum):
     ('/api/pack/load', ApiLoadPackHandler),
     ('/api/pack/del', ApiDelPackHandler),
     ('/api/pack/deploy', ApiDeployPackHandler),
-    ('/api/pack/undeploy', ApiUndeployPackHandler),
 
     ('/app/(.+)', AppStaticFileHandler),
     ('/local/(.+)', LocalStaticFileHandler),
