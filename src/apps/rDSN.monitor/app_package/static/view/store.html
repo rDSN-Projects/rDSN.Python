@@ -31,7 +31,7 @@
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button class="btn btn-info" data-toggle="modal" data-target="#uploadpack">App Registration </button>
+            <button class="btn btn-info" data-toggle="modal" data-target="#uploadpack1">App Registration </button>
         </div>
     </div>
     <div class="row">
@@ -42,6 +42,7 @@
             <th>Name</th>
             <th>Author</th>
             <th>Description</th>
+            <th>Files</th>
             <th>Details</th>
             <th>Running instance</th>
             <th>Deploy</th>
@@ -96,13 +97,13 @@ $( document ).ready(function() {
 </style>
 
 <!-- Upload Package Modal -->
-<div id="uploadpack" class="modal fade" role="dialog">
+<div id="uploadpack1" class="modal fade" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">App Registration</h4>
+        <h4 class="modal-title">App Registration -- Step 1</h4>
       </div>
       <div class="modal-body">
         <div class="row">
@@ -125,23 +126,6 @@ $( document ).ready(function() {
         </div>
         <div class="row">
             <div class="col-xs-12">
-                <label>Supported Cluster Type</label>
-                <div class="well" style="max-height: 300px;overflow: auto;">
-                <ul id="check-list-box" class="list-group checked-list-box">
-                    <li class="list-group-item" index="kubernetes">kubernetes</li>
-                    <li class="list-group-item" index="docker">docker</li>
-                    <li class="list-group-item" index="bare_medal_linux">bare_medal_linux</li>
-                    <li class="list-group-item" index="bare_medal_windows">bare_medal_windows</li>
-                    <li class="list-group-item" index="yarn_on_linux">yarn_on_linux</li>
-                    <li class="list-group-item" index="yarn_on_windows">yarn_on_windows</li>
-                    <li class="list-group-item" index="mesos_on_linux">mesos_on_linux</li>
-                    <li class="list-group-item" index="mesos_on_windows">mesos_on_windows</li>
-                </ul>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-xs-12">
                 <form name="fileForm" method="post" onsubmit="return validateForm()" enctype="multipart/form-data">
                 <div class="row">
                     <div class="col-xs-12">
@@ -160,20 +144,184 @@ $( document ).ready(function() {
                 <input id="author" name="author" type="hidden" value=""></input>
                 <input id="description" name="description" type="hidden" value=""></input>
                 <input id="cluster_type" name="cluster_type" type="hidden" value=""></input>
+                <input id="schema_info" name="schema_info" type="hidden" value=""></input>
+                <input id="server_type" name="server_type" type="hidden" value=""></input>
+                <input id="schema_type" name="schema_type" type="hidden" value=""></input>
+                <input id="parameters" name="parameters" type="hidden" value=""></input>
                 </form>
             </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-dismiss="modal" onclick="getClusterType();$('form[name=\'fileForm\']').submit();">Submit</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <div class = "pull-left">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+        <div class = "pull-right">
+            <button type="button" class="btn btn-info" data-toggle="modal" data-dismiss="modal" data-target="#uploadpack2">Next</button>
+        </div>
       </div>
     </div>
 
   </div>
 </div>
 
+<div id="uploadpack2" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">App Registration -- Step 2</h4>
+      </div>
+      <div class="modal-body">
+        <div class = "row">
+          <div class="col-xs-12">
+            <label for="schema_info_in" >schema information</label>
+            <textarea class="form-control" rows="2" id="schema_info_in"> </textarea>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xs-12">
+            <label for="schema_type_in" >schema type</label>
+            <select class = "form-control" id = "schema_type_in">
+              <option value = "thrift">thrift</option>
+              <option value = "bound">bound</option>
+              <option value = "protobuf">protocol buffers</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xs-12">
+            <label for="server_type_in" >server type</label>
+            <select class = "form-control" id = "server_type_in">
+              <option value = "thrift">thrift</option>
+              <option value = "bound">bound</option>
+              <option value = "protobuf">protocol buffers</option>
+              <option value = "rdsn">rdsn</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class = "pull-left">
+          <button type="button" class="btn btn-info" data-dismiss="modal" data-toggle="modal" data-target="#uploadpack1">Previous</button>
+        </div>
+        <div class = "pull-right">
+          <button type="button" class="btn btn-info" data-toggle="modal" data-dismiss="modal" data-target="#uploadpack3">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<div id="uploadpack3" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">App Registration -- Step 3</h4>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-xs-12">
+            <label>Supported Cluster Type</label>
+            <div class="well" style="max-height: 300px;overflow: auto;">
+              <ul id="check-list-box" class="list-group checked-list-box">
+                <li class="list-group-item" index="kubernetes">kubernetes</li>
+                <li class="list-group-item" index="docker">docker</li>
+                <li class="list-group-item" index="bare_medal_linux">bare_medal_linux</li>
+                <li class="list-group-item" index="bare_medal_windows">bare_medal_windows</li>
+                <li class="list-group-item" index="yarn_on_linux">yarn_on_linux</li>
+                <li class="list-group-item" index="yarn_on_windows">yarn_on_windows</li>
+                <li class="list-group-item" index="mesos_on_linux">mesos_on_linux</li>
+                <li class="list-group-item" index="mesos_on_windows">mesos_on_windows</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class = "row">
+          <div class = "col-xs-9">
+            <label>Deployment Parameters</label>
+          </div>
+          <div class = "col-xs-3">
+            <button type = "button" class = "btn btn-warning" id = "add_param_btn">Add Parameter</button>
+          </div>
+        </div>
+        <div class = "row">
+          <div class = "col-xs-12">
+            <table class = "table table-striped" id = "param_input_list">
+              <thead>
+                <tr>
+                  <th>Key</th>
+                  <th>Value</th>
+                  <th>Remove</th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class = "pull-left">
+          <button type="button" class="btn btn-info" data-dismiss="modal" data-toggle="modal" data-target="#uploadpack2">Previous</button>
+        </div>
+        <div class = "pull-right">
+          <button type="button" class="btn btn-success" data-dismiss="modal" onclick="getClusterType();$('form[name=\'fileForm\']').submit();">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal-->
+<div id = "detail_modal" class = "modal fade" role = "dialog">
+  <div class = "modal-dialog">
+    <!-- modal content -->
+    <div class = "modal-content">
+      <div class = "modal-header">
+        <button type = "button" class = "close" data-dismiss = "modal">&times;</button>
+        <h4 class = "modal-title text-danger" id = "detail_app_name">Detail Infomation</h4>
+      </div>
+      <div class = "modal-body">
+        <div class = "row">
+          <div class = "col-xs-12">
+            <label>Schema Info : </label>
+            <p id = "detail_schema_info" class = "text-success"></p>
+          </div>
+        </div>
+        <div class = "row">
+          <div class = "col-xs-6">
+            <label>Schema Type : </label>
+            <p id = "detail_schema_type" class = "text-success"></p>
+          </div>
+        </div>
+        <div class = "row">
+          <div class = "col-xs-6">
+            <label>Server Type : </label>
+            <p id = "detail_server_type" class = "text-success"></p>
+          </div>
+        </div>
+        <div class = "row">
+          <div class = "col-xs-12">
+            <label for="detail_parameters">Parameters : </label>
+            <table class = "table table-striped text-success" id = "detail_parameters">
+              <thead>
+                <tr>
+                  <th><span class = "text-muted">Key</span></th>
+                  <th><span class = "text-muted">Value</span></th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <!-- Deploy Modal -->

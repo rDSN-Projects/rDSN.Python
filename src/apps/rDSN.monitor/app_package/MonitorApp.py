@@ -36,6 +36,11 @@ def GetMonitorDirPath():
 def jinja_max(a,b):
     return max(a,b)
 
+#check if table we need exist. If not, we create one
+def check_table(cursor) :
+    sql_cmd = "CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text)"
+    cursor.execute(sql_cmd)
+
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
@@ -47,7 +52,6 @@ class StaticFileHandler(webapp2.RequestHandler):
     path = ''
     def get(self, path):
         abs_path = os.path.abspath(os.path.join(self.path, path))
-        print abs_path
         if os.path.isdir(abs_path)  != 0:
             self.response.set_status(403)
             return
@@ -423,15 +427,20 @@ class PageStoreHandler(BaseHandler):
         author = self.request.get('author')
         description = self.request.get('description')
         cluster_type = self.request.get('cluster_type')
+        schema_info = self.request.get('schema_info')
+        schema_type = self.request.get('schema_type')
+        server_type = self.request.get('server_type')
+        parameters = self.request.get('parameters')
 
         pack_dir = GetMonitorDirPath()+'/local/pack/'
         if not os.path.exists(pack_dir):
             os.makedirs(pack_dir)
 
+
         try:
             conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
             c = conn.cursor()
-            c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text)")
+            check_table(c)
 
             c.execute("SELECT * FROM pack WHERE name = '" + file_name + "'")
             if c.fetchall()!=[]:
@@ -440,7 +449,19 @@ class PageStoreHandler(BaseHandler):
                 return
         
             uuid_val = str(uuid.uuid1())
-            c.execute("INSERT INTO pack VALUES ('" + file_name + "','" + author + "','" + description + "','" + uuid_val + "','" + cluster_type +  "');")
+            sql_cmd = "INSERT INTO pack VALUES " \
+                    + "('" + file_name \
+                    + "','" + author \
+                    + "','" + description \
+                    + "','" + uuid_val \
+                    + "','" + cluster_type \
+                    + "','" + schema_info \
+                    + "','" + schema_type \
+                    + "','" + server_type \
+                    + "','" + parameters \
+                    +  "');"
+
+            c.execute(sql_cmd);
             conn.commit()
 
             conn.close()
@@ -542,7 +563,7 @@ class ApiSaveViewHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
+        check_table(c)
         c.execute("DELETE FROM view WHERE name = '" + name + "';")
 
         c.execute("INSERT INTO view VALUES ('" + name + "','" + author + "','" + description + "','" + counterList + "','" + graphtype + "','" + interval + "');")
@@ -562,7 +583,7 @@ class ApiLoadViewHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
+        check_table(c)
         for view in c.execute('SELECT * FROM view'):
             viewList.append({'name':view[0],'author':view[1],'description':view[2],'counterList':view[3],'graphtype':view[4],'interval':view[5]})
         conn.close()
@@ -578,7 +599,7 @@ class ApiDelViewHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, desciprtion text, counterList text, graphtype text, interval text)")
+        check_table(c)
         c.execute("DELETE FROM view WHERE name = '" + name + "';")
         conn.commit()
         conn.close()
@@ -595,12 +616,44 @@ class ApiLoadPackHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text)")
+        check_table(c)
         for pack in c.execute('SELECT * FROM pack'):
             packList.append({'name':pack[0],'author':pack[1],'description':pack[2],'uuid':pack[3],'cluster_type':pack[4]})
         conn.close()
         
         self.SendJson(packList)    
+
+
+class ApiPackDetailHandler(BaseHandler):
+    def post(self):
+        pack_id = self.request.get('id')
+        if pack_id == "" or not pack_id :
+            self.response.write("missing parameter package id")
+            return
+
+        local_dir = GetMonitorDirPath()+'/local/'
+        if not os.path.exists(local_dir):
+            os.makedirs(local_dir)
+
+        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        c = conn.cursor()
+        check_table(c)
+
+        c.execute("SELECT * FROM pack WHERE uuid = '" + pack_id + "'")
+        pack_info = c.fetchone()
+        conn.close()
+
+        if pack_info == [] :
+            self.response.write('cannot find the package : ' + pack_id)
+            return
+
+        ret = {'name' : pack_info[0], \
+            'schema_info' : pack_info[5], \
+            'schema_type' : pack_info[6], \
+            'server_type' : pack_info[7], \
+            'parameters' : pack_info[8]};
+        self.SendJson(ret)
+
 
 class ApiDelPackHandler(BaseHandler):
     def post(self):
@@ -611,7 +664,7 @@ class ApiDelPackHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text)")
+        check_table(c)
 
         c.execute("SELECT * FROM pack WHERE name = '" + packName + "'")
         packInfo = c.fetchone()
@@ -678,6 +731,7 @@ def start_http_server(portNum):
     ('/api/view/load', ApiLoadViewHandler),
     ('/api/view/del', ApiDelViewHandler),
     ('/api/pack/load', ApiLoadPackHandler),
+    ('/api/pack/detail', ApiPackDetailHandler),
     ('/api/pack/del', ApiDelPackHandler),
     ('/api/pack/deploy', ApiDeployPackHandler),
 

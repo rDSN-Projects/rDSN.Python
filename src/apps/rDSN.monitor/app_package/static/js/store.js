@@ -26,11 +26,53 @@ function validateForm() {
     
     document.forms["fileForm"]["author"].value = $('#author').val();
     document.forms["fileForm"]["description"].value = $('#description').val();
+    document.forms["fileForm"]["schema_info"].value = $('#schema_info_in').val();
+    document.forms["fileForm"]["schema_type"].value = $('#schema_type_in').val();
+    document.forms["fileForm"]["server_type"].value = $('#server_type_in').val();
+
+    var param_table = document.getElementById('param_input_list');
+    var row_len = param_table.rows.length;
+    var params_map = {};
+    for (i = 1; i < row_len; i++)
+    {
+        var cells = param_table.rows.item(i).cells;
+        var key= cells.item(0).lastElementChild.value;
+        var value= cells.item(1).lastElementChild.value;
+        if (key != "" && value != "")
+        {
+            params_map[key] = value;
+        }
+    }
+    document.forms["fileForm"]["parameters"].value = JSON.stringify(params_map);
 
     return true;
 }
 
 loadPackages();
+
+function loadPackageDetail(id) {
+    $.post('/api/pack/detail', {id: id
+        }, function(data) {
+            data = JSON.parse(data);
+            $('#detail_app_name').text(data['name']);
+            $('#detail_schema_info').text(data['schema_info']);
+            $('#detail_schema_type').text(data['schema_type']);
+            $('#detail_server_type').text(data['server_type']);
+            params = data['parameters'];
+            params = JSON.parse(params);
+            var tableHTML = "";
+            for (var key in params)
+            {
+                tableHTML += '<tr>'
+                          + '<td>' + key + '</td>'
+                          + '<td>' + params[key] + ' </td>'
+                          + '</tr>';
+            }
+            $("#detail_parameters tbody tr").remove();
+            $("#detail_parameters").append(tableHTML);
+        }
+    )
+}
 
 function loadPackages() {
     $.post("/api/pack/load", {
@@ -44,7 +86,8 @@ function loadPackages() {
                 + '<td>' + message[i].name + '</td>' 
                 + '<td>' + message[i].author + '</td>'
                 + '<td>' + message[i].description + '</td>'
-                + '<td><span class="glyphicon glyphicon-gift" aria-hidden="true" onclick="window.location.href = \'fileview.html?working_dir=pack/' + message[i].uuid + '&root_dir=local\';"></span></td>'
+                + '<td><span class="glyphicon glyphicon-file" aria-hidden="true" onclick="window.location.href = \'fileview.html?working_dir=pack/' + message[i].uuid + '&root_dir=local\';"></span></td>'
+                + '<td><span class="glyphicon glyphicon-list-alt" aria-hidden="true"' + 'onclick="loadPackageDetail(\'' + message[i].uuid + '\');' + '$(\'#detail_modal\').modal(\'show\');"></span></td>'
                 + '<td><span class="glyphicon glyphicon-flash" aria-hidden="true" onclick="window.location.href = \'service.html?package_id=' + message[i].uuid +'\';"></span></td>'
                 + '<td><span class="glyphicon glyphicon-send" aria-hidden="true" onclick="SetPackageID(\'' + message[i].uuid + '\');LoadCluster(\'' + encodeURIComponent(JSON.stringify(message[i].cluster_type)) + '\');$(\'#deploypack\').modal(\'show\');"></span></td>'
                 + '<td><span class="glyphicon glyphicon-remove" aria-hidden="true" onclick="RemovePackage(\'' + message[i].name + '\');"></span></td>'
@@ -145,8 +188,24 @@ document.getElementById("fileToUpload").onchange = function () {
     document.getElementById("filepath").value = this.value.replace(/^.*[\\\/]/, '');
 };
 
+document.getElementById("add_param_btn").onclick = function () {
+    var tableHTML = '<tr>'
+                  + '<td> <input> </td>'
+                  + '<td> <input> </td>'
+                  + '<td> <span class="glyphicon glyphicon-remove rm_param_icon" aria-hidden="true"></span></td>'
+                  + '</tr>';
+    $("#param_input_list").append(tableHTML);
+};
+
+
 //check-box-list
 $(function () {
+    $('#param_input_list')
+        .on('click', '.rm_param_icon', function () {
+            $(this).closest("tr").remove();
+
+    });
+
     $('.list-group.checked-list-box .list-group-item').each(function () {
         // Settings
         var $widget = $(this),
@@ -171,6 +230,7 @@ $(function () {
         $checkbox.triggerHandler('change');
         updateDisplay();
     });
+
     $checkbox.on('change', function () {
         updateDisplay();
     });
