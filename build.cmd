@@ -1,3 +1,5 @@
+@ECHO OFF
+
 SET TOP_DIR=%~dp0
 SET bin_dir=%TOP_DIR%\scripts\windows
 SET build_type=%1
