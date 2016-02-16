@@ -2,7 +2,7 @@
 //
 
 # include <dsn/service_api_cpp.h>
-# include <dsn/ports.h>
+# include <dsn/internal/ports.h>
 # include <iostream>
 # include <string.h>
 # include <time.h>
@@ -180,7 +180,15 @@ DSN_PY_API void dsn_run_helper(int argc, char** argv, bool sleep_after_init)
 
 DSN_PY_API bool dsn_register_app_role_helper(const char* type_name, const char* create, const char* start, dsn_app_destroy destroy)
 {
-	return dsn_register_app_role(type_name, app_create, app_start, destroy);
+	dsn_app app;
+	memset(&app, 0, sizeof(app));
+	app.mask = DSN_APP_MASK_DEFAULT;
+	strncpy(app.type_name, type_name, sizeof(app.type_name));
+	app.layer1.create = app_create;
+	app.layer1.start = app_start;
+	app.layer1.destroy = destroy;
+
+	return dsn_register_app(&app);
 }
 
 static void task_handler(void *param)
