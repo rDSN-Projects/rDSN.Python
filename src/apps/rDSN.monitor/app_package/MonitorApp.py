@@ -498,6 +498,10 @@ class PageServiceHandler(BaseHandler):
     def get(self):
         self.render_template('service.html')
 
+class PageMulticmdHandler(BaseHandler):
+    def get(self):
+        self.render_template('multicmd.html')
+
 class ApiCliHandler(BaseHandler):
     def get(self):
         command = self.request.get('command');
@@ -717,6 +721,7 @@ def start_http_server(portNum):
     ('/view.html', PageViewHandler),
     ('/store.html', PageStoreHandler),
     ('/service.html', PageServiceHandler),
+    ('/multicmd.html', PageMulticmdHandler),
 
     ('/api/cli', ApiCliHandler),
     ('/api/bash', ApiBashHandler),

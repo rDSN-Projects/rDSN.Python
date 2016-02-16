@@ -1,0 +1,78 @@
+{% extends "static/view/template.html" %}
+{% block body %}
+
+
+<style>
+
+.modal.modal-wide .modal-dialog {
+  width: 90%;
+}
+.modal-wide .modal-body {
+  overflow-y: auto;
+}
+
+a:hover {
+    background-color: #80ff80;
+    cursor: pointer;
+}
+.glyphicon:hover {
+    background-color: #ffff00;
+    cursor: pointer;
+}
+</style>
+
+<div class="container">
+
+	<div class="page-header">
+	</div>
+
+	<div class="page-header">
+        <h1> <font color= #333333><center>Multi-node Command</center></font>
+			<small><center><font color= #778899></font></center></small>
+		</h1>
+	</div>
+
+</div>
+
+<div class="container" style="margin-top:20px;">
+	<div class="row">
+        <div class="col-xs-8"></div>
+        <div class="col-xs-4">
+            <button class="btn btn-warning" onclick="window.open('multinode.html');">New Scenario</button>
+            <button class="btn btn-success" onclick="LoadView()">Load Scenario</button>
+            <button class="btn btn-info" data-toggle="modal" data-target="#saveview" >Save Scenario</button>
+        </div>
+    </div>
+	<div class="row">
+        <div class="col-xs-6">
+            <h3 class="text-center">Machine List</h3>
+            <div class="well" style="max-height: 500px;overflow: auto;">
+        		<ul class="list-group" id="machineList">
+                    <li class="list-group-item" id="addmachinebut"><a onClick='AddMachine();'>(Type MachineName:PortNum)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <h3 class="text-center">Command Text</h3>
+            <div class="well" style="max-height: 300px;overflow: auto;">
+                <textarea class="form-control" rows="2" id="cmdtext"></textarea>
+            </div>
+        </div>
+    </div>
+	<div class="row">
+        <div class="col-xs-10"></div>
+        <button class="btn btn-primary col-xs-2" onclick="SendReqAll();">Send command requests</button>
+    </div>
+</div>
+
+<div class="container" style="margin-top:20px;">
+	<div class="row">
+        <div id="jsontable"></div>
+    </div>
+</div>
+
+<script src="js/multicmd.js"></script>
+<script src="https://cdn.rawgit.com/marianoguerra/json.human.js/master/src/json.human.js"></script>
+<link href="https://cdn.rawgit.com/marianoguerra/json.human.js/master/css/json.human.css" rel="stylesheet" type="text/css">
+
+{% endblock %}
