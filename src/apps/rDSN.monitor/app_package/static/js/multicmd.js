@@ -1,10 +1,36 @@
-var machineList = [];
+var machineList = new Vue({
+  el: '#machineList',
+  data: {
+      machines:[]
+  },
+  methods: {
+    add: function () {
+      var value = this.newMachine && this.newMachine.trim();
+	  if (!value) {
+	    return;
+	  }
+	  this.machines.push(value);
+	  this.newMachine = '';
+    },
+
+    remove: function (machine) {
+	  this.machines.$remove(machine);
+	}
+  }
+})
+
+var jsontable = new Vue({
+  el: '#jsontable',
+  data: {
+      tableContent: "" 
+  }
+})
 
 function SendReqAll() {
     document.getElementById("jsontable").innerHTML = "";
-    for (machineNum in machineList)
+    for (machineNum in machineList.machines)
     {
-        SendReqSingle(machineList[machineNum]);
+        SendReqSingle(machineList.machines[machineNum]);
     }
 }
 
@@ -25,21 +51,6 @@ function SendReqSingle(machine)
         }
         );
     })(machine);
-}
-
-
-function AddMachine() {
-    if($("#newmachinetext").length) {return;}
-    $('<li class="list-group-item machine" id="newmachineli"><input type="text" id="newmachinetext"></li>').insertBefore("#addmachinebut");
-    $("#newmachinetext").change(function() {
-        var machinename = $("#newmachinetext").val();
-        if (machinename==''){machinename='unknown';}
-        $("#newmachineli").remove();
-        var newMachine = '<li class="list-group-item machine" id="' + machinename.replace(':','_') +'"><a onClick="Machine2App(\'' + machinename + '\');$(\'.\'+$(this).parent().attr(\'class\').replace(\' \',\'.\')).css(\'background\',\'white\');$(this).parent().css(\'background\',\'#99ffcc\');">' + machinename + '</a><span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + machinename.replace(':','_') +'\').remove();"></span></li>';
-        $(newMachine).insertBefore("#addmachinebut");
-
-        machineList.push(machinename);
-    });
 }
 
 

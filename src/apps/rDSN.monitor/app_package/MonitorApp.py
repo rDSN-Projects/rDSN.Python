@@ -46,7 +46,11 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 JINJA_ENVIRONMENT.globals.update(jinja_max=jinja_max)
-
+JINJA_ENVIRONMENT_Vue = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
+    extensions=['jinja2.ext.autoescape'],
+    autoescape=True,
+    variable_start_string='{@', variable_end_string='@}')
 
 class StaticFileHandler(webapp2.RequestHandler):
     path = ''
@@ -85,6 +89,15 @@ class BaseHandler(webapp2.RequestHandler):
 
         template = JINJA_ENVIRONMENT.get_template(path)
         self.response.out.write(template.render(params))
+
+    def render_template_Vue(self, view_filename, params=None):
+        if not params:
+            params = {}
+        path = 'static/view/' + view_filename
+
+        template = JINJA_ENVIRONMENT_Vue.get_template(path)
+        self.response.out.write(template.render(params))
+
     def SendJson(self, r):
         self.response.headers['content-type'] = 'text/plain'
         self.response.write(json.dumps(r))
@@ -500,7 +513,7 @@ class PageServiceHandler(BaseHandler):
 
 class PageMulticmdHandler(BaseHandler):
     def get(self):
-        self.render_template('multicmd.html')
+        self.render_template_Vue('multicmd.html')
 
 class ApiCliHandler(BaseHandler):
     def get(self):
