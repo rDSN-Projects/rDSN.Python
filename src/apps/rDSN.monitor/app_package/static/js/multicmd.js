@@ -15,7 +15,11 @@ function SendReqSingle(machine)
             command: $('textarea#cmdtext').val()
         }, function(data){
             var resp = {};
-            resp[machine] = JSON.parse(data);
+            try {
+                data = JSON.parse(data);
+            } catch (e){
+            }
+            resp[machine] = data;
             var node = JsonHuman.format(resp);
             document.getElementById("jsontable").appendChild(node);
         }
@@ -37,3 +41,5 @@ function AddMachine() {
         machineList.push(machinename);
     });
 }
+
+
