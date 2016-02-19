@@ -42,7 +42,7 @@ a:hover {
             <div class="col-xs-8"></div>
             <div class="col-xs-4">
             <div id="modal-button">
-                <modal-button-template scenario_name='Scenario' :scenarios.sync="scenarios"></modal-button-template>
+                <modal-button-template scenario_name='Scenario' :scenarios.sync="scenarios" :info.sync="info"></modal-button-template>
             </div>    
             </div>
         </div>
@@ -56,13 +56,13 @@ a:hover {
             <div class="col-xs-6">
                 <h3 class="text-center">Command Text</h3>
                 <div class="well" style="max-height: 300px;overflow: auto;">
-                    <textarea class="form-control" rows="2" id="cmdtext"></textarea>
+                    <textarea class="form-control" rows="2" id="cmdtext" v-model="cmdtext" placeholder="eg. system.queue"></textarea>
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="col-xs-10"></div>
-            <send-req-button></send-req-button>
+            <send-req-button :machines="machines" :cmdtext="cmdtext" :interval.sync="interval" :times.sync="times" v-ref:send_button></send-req-button>
         </div>
     </div>
 
@@ -73,10 +73,43 @@ a:hover {
     </div>
 
     <div id="modals">
-      <save-modal-template scenario_name='Scenario'></save-modal-template>
-      <load-modal-template scenario_name='Scenario' :scenarios.sync="scenarios"></load-modal-template>
+      <save-modal-template scenario_name='Scenario' 
+                           :machines="machines"
+                           :cmdtext="cmdtext"
+                           :name.sync="name"
+                           :author.sync="author"
+                           :description.sync="description"
+                           :info.sync="info"></save-modal-template>
+      <load-modal-template scenario_name='Scenario'
+                           :scenarios.sync="scenarios"
+                           :machines.sync="machines"
+                           :cmdtext.sync="cmdtext" 
+                           :name.sync="name"
+                           :author.sync="author"
+                           :description.sync="description"
+                           :info.sync="info"></load-modal-template>
+    </div>
+
+    <div id="info-modal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Info</h4>
+          </div>
+          <div class="modal-body">
+              {{info}}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
     </div>
 </div>
+
+
 
 <script type="x/template" id="save-modal-template">
 <div id="save-modal" class="modal fade" role="dialog">
@@ -90,20 +123,20 @@ a:hover {
       <div class="modal-body">
         <div class="row">
             <div class="col-xs-4">
-                <label for="viewname" >{{scenario_name}} Name</label>
-                <input id="viewname">
+                <label for="scenarioname" >{{scenario_name}} Name</label>
+                <input id="scenarioname" v-model="name">
             </div>
             <div class="col-xs-4">
             </div>
             <div class="col-xs-4">
                 <label for="author" >Author</label>
-                <input id="author">
+                <input id="author" v-model="author">
             </div>
         </div>
         <div class="row">
             <div class="col-xs-12">
                 <label for="description" >Descrption</label>
-                <textarea class="form-control" rows="5" id="description"></textarea>
+                <textarea class="form-control" rows="5" id="description" v-model="description"></textarea>
             </div>
         </div>
       </div>
@@ -132,12 +165,18 @@ a:hover {
             <th>Name</th>
             <th>Description</th>
             <th>Author</th>
-            <th>Run</th>
             <th>Load</th>
             <th>Delete</th>
         </tr>
         </thead>
         <tbody>
+        <tr v-for="scenario in scenarios">
+        <td>{{scenario.name}}</td>
+        <td>{{scenario.description}}</td>
+        <td>{{scenario.author}}</td>
+        <td><span class="glyphicon glyphicon-import" @click="load(scenario)"></span></td>
+        <td><span class="glyphicon glyphicon-remove" @click="remove(scenario)"></span></td>
+        </tr>
         </tbody>
         </table>
       </div>

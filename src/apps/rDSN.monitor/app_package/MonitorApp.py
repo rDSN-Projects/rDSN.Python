@@ -36,11 +36,6 @@ def GetMonitorDirPath():
 def jinja_max(a,b):
     return max(a,b)
 
-#check if table we need exist. If not, we create one
-def check_table(cursor) :
-    sql_cmd = "CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text)"
-    cursor.execute(sql_cmd)
-
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
@@ -151,7 +146,6 @@ class BaseHandler(webapp2.RequestHandler):
         params['CALL_TASK_LIST'] = call_task_list 
         params['LINK_LIST'] = link_list
         params['SHARER_LIST'] = sharer_list
-
 #webapp2 handlers
 class PageMainHandler(BaseHandler):
     def get(self):
@@ -577,7 +571,7 @@ class ApiSaveViewHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        check_table(c)
+        c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, description text, counterList text, graphtype text, interval text)")
         c.execute("DELETE FROM view WHERE name = '" + name + "';")
 
         c.execute("INSERT INTO view VALUES ('" + name + "','" + author + "','" + description + "','" + counterList + "','" + graphtype + "','" + interval + "');")
@@ -597,7 +591,7 @@ class ApiLoadViewHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        check_table(c)
+        c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, description text, counterList text, graphtype text, interval text)")
         for view in c.execute('SELECT * FROM view'):
             viewList.append({'name':view[0],'author':view[1],'description':view[2],'counterList':view[3],'graphtype':view[4],'interval':view[5]})
         conn.close()
@@ -613,7 +607,7 @@ class ApiDelViewHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        check_table(c)
+        c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, description text, counterList text, graphtype text, interval text)")
         c.execute("DELETE FROM view WHERE name = '" + name + "';")
         conn.commit()
         conn.close()
@@ -630,7 +624,7 @@ class ApiLoadPackHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        check_table(c)
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text)")
         for pack in c.execute('SELECT * FROM pack'):
             packList.append({'name':pack[0],'author':pack[1],'description':pack[2],'uuid':pack[3],'cluster_type':pack[4]})
         conn.close()
@@ -651,7 +645,7 @@ class ApiPackDetailHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        check_table(c)
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text)")
 
         c.execute("SELECT * FROM pack WHERE uuid = '" + pack_id + "'")
         pack_info = c.fetchone()
@@ -678,7 +672,7 @@ class ApiDelPackHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        check_table(c)
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text)")
 
         c.execute("SELECT * FROM pack WHERE name = '" + packName + "'")
         packInfo = c.fetchone()
@@ -715,6 +709,64 @@ class ApiDeployPackHandler(BaseHandler):
         req = {"deploy_request":{"cluster_name":cluster_name, "name":name, "package_full_path":package_full_path, "package_id":package_id, "package_server":package_server}}
         self.response.write(Native.dsn_cli_run('server.deploy ' + json.dumps(req).replace(" ", "")))
 
+class ApiSaveScenarioHandler(BaseHandler):
+    def post(self):
+        name = self.request.get('name')
+        author = self.request.get('author')
+        description = self.request.get('description')
+        machines = self.request.get('machines')
+        cmdtext = self.request.get('cmdtext')
+
+        print name,author,description,machines,cmdtext
+        local_dir = GetMonitorDirPath()+'/local/'
+        if not os.path.exists(local_dir):
+            os.makedirs(local_dir)
+
+        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS scenario (name text, author text, desciprtion text, machines text, cmdtext text)")
+        c.execute("DELETE FROM scenario WHERE name = '" + name + "';")
+
+        c.execute("INSERT INTO scenario VALUES ('" + name + "','" + author + "','" + description + "','" + machines + "','" + cmdtext + "');")
+        conn.commit()
+
+        conn.close()
+
+        self.response.write('success')
+
+class ApiLoadScenarioHandler(BaseHandler):
+    def post(self): 
+        scenarioList = []
+
+        local_dir = GetMonitorDirPath()+'/local/'
+        if not os.path.exists(local_dir):
+            os.makedirs(local_dir)
+
+        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS scenario (name text, author text, desciprtion text, machines text, cmdtext text)")
+        for scenario in c.execute('SELECT * FROM scenario'):
+            scenarioList.append({'name':scenario[0],'author':scenario[1],'description':scenario[2],'machines':scenario[3],'cmdtext':scenario[4]})
+        conn.close()
+        self.SendJson(scenarioList)
+
+class ApiDelScenarioHandler(BaseHandler):
+    def post(self): 
+        name = self.request.get('name')
+
+        local_dir = GetMonitorDirPath()+'/local/'
+        if not os.path.exists(local_dir):
+            os.makedirs(local_dir)
+
+        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS scenario (name text, author text, desciprtion text, machines text, cmdtext text)")
+        c.execute("DELETE FROM scenario WHERE name = '" + name + "';")
+        conn.commit()
+        conn.close()
+
+        self.response.write('success')
+
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(GetMonitorDirPath() + "/static")
     web_app = webapp2.WSGIApplication([
@@ -749,6 +801,9 @@ def start_http_server(portNum):
     ('/api/pack/detail', ApiPackDetailHandler),
     ('/api/pack/del', ApiDelPackHandler),
     ('/api/pack/deploy', ApiDeployPackHandler),
+    ('/api/scenario/save', ApiSaveScenarioHandler),
+    ('/api/scenario/load', ApiLoadScenarioHandler),
+    ('/api/scenario/del', ApiDelScenarioHandler),
 
     ('/app/(.+)', AppStaticFileHandler),
     ('/local/(.+)', LocalStaticFileHandler),
