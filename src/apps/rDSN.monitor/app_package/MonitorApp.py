@@ -716,18 +716,20 @@ class ApiSaveScenarioHandler(BaseHandler):
         description = self.request.get('description')
         machines = self.request.get('machines')
         cmdtext = self.request.get('cmdtext')
+        interval = self.request.get('interval')
+        times = self.request.get('times')
 
-        print name,author,description,machines,cmdtext
+        print name,author,description,machines,cmdtext,interval,times
         local_dir = GetMonitorDirPath()+'/local/'
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS scenario (name text, author text, desciprtion text, machines text, cmdtext text)")
+        c.execute("CREATE TABLE IF NOT EXISTS scenario (name text, author text, desciprtion text, machines text, cmdtext text, interval text, times text)")
         c.execute("DELETE FROM scenario WHERE name = '" + name + "';")
 
-        c.execute("INSERT INTO scenario VALUES ('" + name + "','" + author + "','" + description + "','" + machines + "','" + cmdtext + "');")
+        c.execute("INSERT INTO scenario VALUES ('" + name + "','" + author + "','" + description + "','" + machines + "','" + cmdtext + "','" + interval + "','" + times + "');")
         conn.commit()
 
         conn.close()
@@ -744,9 +746,9 @@ class ApiLoadScenarioHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS scenario (name text, author text, desciprtion text, machines text, cmdtext text)")
+        c.execute("CREATE TABLE IF NOT EXISTS scenario (name text, author text, desciprtion text, machines text, cmdtext text, interval text, times text)")
         for scenario in c.execute('SELECT * FROM scenario'):
-            scenarioList.append({'name':scenario[0],'author':scenario[1],'description':scenario[2],'machines':scenario[3],'cmdtext':scenario[4]})
+            scenarioList.append({'name':scenario[0],'author':scenario[1],'description':scenario[2],'machines':scenario[3],'cmdtext':scenario[4],'interval':scenario[5],'times':scenario[6]})
         conn.close()
         self.SendJson(scenarioList)
 

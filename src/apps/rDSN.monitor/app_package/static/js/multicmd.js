@@ -19,7 +19,7 @@ var machineList = Vue.extend({
 
 var save_modal_template = Vue.extend({
   template: '#save-modal-template',
-  props: ['scenario_name','machines','cmdtext','name','author','description','info'],
+  props: ['scenario_name','name','author','description','machines','cmdtext','interval','times','info'],
   methods: {
     save: function () {
         $('#save-modal').modal('hide');
@@ -37,6 +37,8 @@ var save_modal_template = Vue.extend({
                 description: this.description,
                 machines: JSON.stringify(this.machines),
                 cmdtext: this.cmdtext,
+                interval: this.interval,
+                times: this.times,
             }, function(result){
                 thisp.info = result;
                 $('#info-modal').modal('show');
@@ -53,7 +55,7 @@ var save_modal_template = Vue.extend({
 
 var load_modal_template = Vue.extend({
   template: '#load-modal-template',
-  props: ['scenario_name','scenarios','name','description','author','machines','cmdtext'],
+  props: ['scenario_name','scenarios','name','description','author','machines','cmdtext','interval','times'],
   methods: {
     load: function (scenario) {
         this.name = scenario.name;
@@ -61,6 +63,8 @@ var load_modal_template = Vue.extend({
         this.description = scenario.description;
         this.machines = scenario.machines;
         this.cmdtext = scenario.cmdtext;
+        this.interval = scenario.interval,
+        this.times = scenario.times,
 
         this.ready = true;
         $('#load-modal').modal('hide');
@@ -99,7 +103,9 @@ var modal_button_template = Vue.extend({
                         description: message[i].description,
                         author: message[i].author,
                         machines: JSON.parse(message[i].machines),
-                        cmdtext: message[i].cmdtext
+                        cmdtext: message[i].cmdtext,
+                        interval: message[i].interval,
+                        times: message[i].times,
                     });
                 }
                 $('#load-modal').modal('show');
@@ -116,11 +122,23 @@ var modal_button_template = Vue.extend({
 
 var send_req_button = Vue.extend({
   template: '#send-req-button',
-  props: ['machines','cmdtext','interval','times'],
+  props: ['machines','cmdtext','interval','times','info'],
+  data: function () {
+    return {timeoutFunc: ''}
+  },
   methods: {
     send: function () {
+        //check parameter
+        if ((this.interval!='' && isNaN(this.interval)) || (this.times!='' && this.times!='stop' && isNaN(this.times)))
+        {
+            this.info = 'Interval and times must be integers';
+            $('#info-modal').modal('show');
+            return;            
+        }
+
+        //clear
         document.getElementById("jsontable").innerHTML = "";
-        
+
         var thisp = this;
         for (machineNum in this.machines)
         {
@@ -138,11 +156,33 @@ var send_req_button = Vue.extend({
                     var node = JsonHuman.format(resp);
                     document.getElementById("jsontable").appendChild(node);
                 }
-                );
+                )
+                .fail(function() {
+                    thisp.info = "Error: lost connection to the server";
+                    $('#info-modal').modal('show');
+                    return;
+                });
             })(machine);
         }
+
+        if (this.interval == '' || this.interval == '0' || this.times == 'stop'){return;}
+
+        if (this.times == '' || this.times == '0')
+        {
+            this.timeoutFunc = setTimeout(function(){ thisp.send(); }, parseInt(thisp.interval)*1000);
+        }
+        else
+        {
+            this.timeoutFunc = setTimeout(function(){ thisp.send(); }, parseInt(thisp.interval)*1000);
+            if (this.times == '1'){this.times = 'stop';}
+            else {this.times = (parseInt(this.times)-1).toString();}
+        }
+    },
+    stop: function () {
+        clearTimeout(this.timeoutFunc);
+        this.times = 'stop';
     }
-  }
+  },
 })
 
 var vm = new Vue({
