@@ -144,7 +144,7 @@ class Native:
 
     @staticmethod
     def dsn_cli_run(command_line):
-        dll_helper.dsn_cli_run_helper.restype = py_object
+        dll_helper.dsn_cli_run_helper.restype = c_char_p
         return dll_helper.dsn_cli_run_helper(command_line.encode())
 
     @staticmethod
