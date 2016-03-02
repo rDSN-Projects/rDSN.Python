@@ -350,12 +350,16 @@ DSN_PY_API bool dsn_rpc_register_handler_helper(dsn_task_code_t code, const char
 	return dsn_rpc_register_handler(code, name, rpc_request_handler, (void *)param);
 }
 
-DSN_PY_API PyObject* dsn_cli_run_helper(const char* command_line)
+__thread char tls_buffer[4*1024*1024];
+
+DSN_PY_API const char* dsn_cli_run_helper(const char* command_line)
 {
 	const char* str = dsn_cli_run(command_line);
-	PyObject* res = Py_BuildValue("s", str);
+	int length = std::min<int>(strlen(str), 4 * 1024 * 1024 - 1);
+	strncpy(tls_buffer, str, length);
+	tls_buffer[length] = '\0';
 	dsn_cli_free(str);
-	return res;
+	return tls_buffer;
 }
 
 DSN_PY_API dsn_error_t dsn_app_bridge(int argc, const char** argv)

@@ -136,6 +136,8 @@ var send_req_button = Vue.extend({
             return;            
         }
 
+        if (this.times == 'stop'){return;}
+
         //clear
         document.getElementById("jsontable").innerHTML = "";
 
@@ -158,14 +160,15 @@ var send_req_button = Vue.extend({
                 }
                 )
                 .fail(function() {
-                    thisp.info = "Error: lost connection to the server";
+                    thisp.stop();
+                    thisp.info = "Error: lost connection to the server " + machine;
                     $('#info-modal').modal('show');
                     return;
                 });
             })(machine);
         }
 
-        if (this.interval == '' || this.interval == '0' || this.times == 'stop'){return;}
+        if (this.interval == '' || this.interval == '0'){return;}
 
         if (this.times == '' || this.times == '0')
         {

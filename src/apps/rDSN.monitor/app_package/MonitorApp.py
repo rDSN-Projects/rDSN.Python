@@ -420,9 +420,9 @@ class PageAnalyzerHandler(BaseHandler):
         self.render_template('analyzer.html')
 
 
-class PageViewHandler(BaseHandler):
+class PageCounterViewHandler(BaseHandler):
     def get(self):
-        self.render_template('counterview.html')
+        self.render_template_Vue('counterview.html')
         
 class PageStoreHandler(BaseHandler):
     def get(self):
@@ -785,7 +785,7 @@ def start_http_server(portNum):
     ('/configure.html', PageConfigureHandler),
     ('/fileview.html', PageFileViewHandler),
     ('/analyzer.html', PageAnalyzerHandler),
-    ('/view.html', PageViewHandler),
+    ('/counterview.html', PageCounterViewHandler),
     ('/store.html', PageStoreHandler),
     ('/service.html', PageServiceHandler),
     ('/multicmd.html', PageMulticmdHandler),
