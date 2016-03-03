@@ -438,68 +438,78 @@ class PageStoreHandler(BaseHandler):
         schema_type = self.request.get('schema_type')
         server_type = self.request.get('server_type')
         parameters = self.request.get('parameters')
+        uuid_val = str(uuid.uuid1())
 
         pack_dir = GetMonitorDirPath()+'/local/pack/'
         if not os.path.exists(pack_dir):
             os.makedirs(pack_dir)
 
+        savedFile = open(pack_dir + uuid_val + '.7z', 'wb')
+        savedFile.write(raw_file)
+        savedFile.close()
 
-        try:
-            conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
-            c = conn.cursor()
-            check_table(c)
+        iconFile = open(GetMonitorDirPath()+'/local/pack/'+ uuid_val + '.jpg', 'wb')
+        iconFile.write(raw_icon)
+        iconFile.close()
 
-            c.execute("SELECT * FROM pack WHERE name = '" + file_name + "'")
-            if c.fetchall()!=[]:
-                conn.close()
-                self.response.write('Upload fail! App "'+ file_name +'" already exists!')
-                return
-        
-            uuid_val = str(uuid.uuid1())
-            sql_cmd = "INSERT INTO pack VALUES " \
-                    + "('" + file_name \
-                    + "','" + author \
-                    + "','" + description \
-                    + "','" + uuid_val \
-                    + "','" + cluster_type \
-                    + "','" + schema_info \
-                    + "','" + schema_type \
-                    + "','" + server_type \
-                    + "','" + parameters \
-                    +  "');"
+        loc_of_7z = ''
+        #to detect if 7z exists
+        os_type = platform.system()
+        if os_type == 'Windows':
+            if subprocess.call(['where', '7z.exe']) == 0:
+                loc_of_7z = '7z.exe'
+        elif os_type == 'Linux':
+            if subprocess.call(['which', '7z']) == 0:
+                loc_of_7z = '7z'
+        if loc_of_7z =='':
+            self.response.write('Error: cannot find 7z')
+            return
 
-            c.execute(sql_cmd);
-            conn.commit()
+        subprocess.call([loc_of_7z,'x', pack_dir + uuid_val + '.7z','-y','-o'+os.path.join(pack_dir, uuid_val)])
 
+        loc_of_tron = ''
+        #to detect if Tron exists
+        if os_type == 'Windows':
+            if subprocess.call(['where', 'Tron.exe']) == 0:
+                loc_of_tron = 'Tron.exe'
+        elif os_type == 'Linux':
+            if subprocess.call(['which', 'Tron']) == 0:
+                loc_of_tron = 'Tron'
+        if loc_of_tron =='':
+            self.response.write('Error: cannot find Tron')
+            return
+
+        subprocess.call([loc_of_tron,'php','thrift', os.path.join(pack_dir,uuid_val,file_name + '.thrift')])
+        os.rename(os.path.join(os.path.abspath(os.path.join(loc_of_tron, os.pardir)),'tmp',file_name+'.Tron.Composition.dll'), os.path.join(pack_dir,uuid_val,file_name+'.Tron.Composition.dll'))
+
+        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text)")
+
+        c.execute("SELECT * FROM pack WHERE name = '" + file_name + "'")
+        if c.fetchall()!=[]:
             conn.close()
+            self.response.write('Upload fail! App "'+ file_name +'" already exists!')
+            return
+        
+        sql_cmd = "INSERT INTO pack VALUES " \
+                + "('" + file_name \
+                + "','" + author \
+                + "','" + description \
+                + "','" + uuid_val \
+                + "','" + cluster_type \
+                + "','" + schema_info \
+                + "','" + schema_type \
+                + "','" + server_type \
+                + "','" + parameters \
+                +  "');"
 
-            savedFile = open(pack_dir + uuid_val + '.7z', 'wb')
-            savedFile.write(raw_file)
-            savedFile.close()
+        c.execute(sql_cmd)
+        conn.commit()
 
-            loc_of_7z = ''
-            #to detect if 7z exists
-            os_type = platform.system()
-            if os_type == 'Windows':
-                if subprocess.call(['where', '7z.exe']) == 0:
-                    loc_of_7z = '7z.exe'
-            elif os_type == 'Linux':
-                if subprocess.call(['which', '7z']) == 0:
-                    loc_of_7z = '7z'
-            if loc_of_7z =='':
-                self.response.write('Error: cannot find '+exe_of_7z)
-                return
+        conn.close()
 
-            subprocess.call([loc_of_7z,'x', pack_dir + uuid_val + '.7z','-y','-o'+pack_dir + '/' + uuid_val])
-
-            
-            iconFile = open(GetMonitorDirPath()+'/local/pack/'+ uuid_val + '.jpg', 'wb')
-            iconFile.write(raw_icon)
-            iconFile.close()
-
-            return webapp2.redirect('/store.html')
-        except:
-            self.response.write('upload fail! Error:' + sys.exc_info()[0].__name__)
+        return webapp2.redirect('/store.html')
 
 class PageServiceHandler(BaseHandler):
     def get(self):
@@ -514,12 +524,12 @@ class ApiCliHandler(BaseHandler):
         command = self.request.get('command');
         queryRes = Native.dsn_cli_run(command)
         self.response.write(queryRes)
+
     def post(self):
         command = self.request.get('command');
         queryRes = Native.dsn_cli_run(command)
 
         self.response.headers['Access-Control-Allow-Origin'] = '*'
-
         self.response.write(queryRes)
 
 class ApiBashHandler(BaseHandler):

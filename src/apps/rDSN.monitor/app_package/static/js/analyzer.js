@@ -273,7 +273,7 @@ function Section2Counter(machine, app, section) {
 
 function Counter2List(machine, app, section, counter, index) {
     $(".list-group.remove-list-box").append('<li class="list-group-item" id="' + machine.replace(':','_') + index + '"><span class="glyphicon glyphicon-remove" onclick="$(\'#' + machine.replace(':','_') + index + '\').remove();"></span>' + machine + ' * ' + app + ' * ' + section + ' * ' + counter+ '</li>');
-    counterSelected.push({machine: machine, name: machine + ' * ' + app + ' * ' + section + ' * ' + counter, index:index});
+    counterSelected.push({machine: machine, label: machine + ' * ' + app + ' * ' + section + ' * ' + counter, name:app + '*' + section + '*' + counter, index:index});
 };
 
 function List2List() {
@@ -289,37 +289,19 @@ function List2List() {
 
     $(".list-group.remove-list-box li").remove();
     for (counter in counterSelected) {
-        var newCounter = {machine: counterSelected[counter].machine, name: counterSelected[counter].name, index: counterSelected[counter].index};
+        var newCounter = {machine: counterSelected[counter].machine, label: counterSelected[counter].label, index: counterSelected[counter].index, name: counterSelected[counter].name};
         if (!containsCounter(newCounter,counterList))
         {
             counterList.push(newCounter);
-            //$("#counterListAll").append('<li class="list-group-item counter-main"><pre>' + counterSelected[counter].name + '<span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(this).parent().parent().remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterSelected[counter].machine + '\', name:\'' +  counterSelected[counter].name + '\', index:' + counterSelected[counter].index + '}),1)"></span> <span class="glyphicon glyphicon-duplicate pull-right" aria-hidden="true" onclick="if($(&quot;#newcountertext&quot;).length) {return;}$(this).parent().parent().after(\'<li class=&quot;list-group-item counter-main &quot; id=&quot;newcounterli&quot;><input type=&quot;text&quot; id=&quot;newcountertext&quot;></li>\');$(&quot;#newcountertext&quot;).val(&quot;' + counterSelected[counter].name + '&quot;);$(&quot;#newcountertext&quot;).attr(&quot;size&quot;,' + counterSelected[counter].name.length + ');duplicateCounter();"></span></pre></li>');
-            $("#counterListAll").append('<li class="list-group-item counter-main"><pre>' + counterSelected[counter].name + '<span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(this).parent().parent().remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterSelected[counter].machine + '\', name:\'' +  counterSelected[counter].name + '\', index:' + counterSelected[counter].index + '}),1)"></span> </pre></li>');
+            $("#counterListAll").append('<li class="list-group-item counter-main"><pre>' + counterSelected[counter].label + '<span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(this).parent().parent().remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterSelected[counter].machine + '\', label:\'' +  counterSelected[counter].label + '\', name:\'' +  counterSelected[counter].name + '\', index:' + counterSelected[counter].index + '}),1)"></span> </pre></li>');
         }
     }
     
     counterSelected = [];
 };
 
-function duplicateCounter() {
-    function parseCounter(str) {
-        return str.split(/[\s\*]+/)
-    }
-
-    $("#newcountertext").change(function() {
-        var countername = $("#newcountertext").val();
-        if (countername==''){countername='unknown * unknown * unknown * unknown';}
-
-        var parseRes = parseCounter(countername)
-        var newCounter = {machine: parseRes[0], name: parseRes[1], index: counterSelected[counter].index};
-        var newCounterText = '<li class="list-group-item counter-main"><pre>' + countername + '</pre></li>';
-        $(newCounterText).insertBefore("#newcounterli");
-        $("#newcounterli").remove();
-    });
-}
-
 function RunPerformanceView() {
-    var url = "counterview.html?"
+    var url = "counterview.html"
 
     var graphtype = $('input[name=graphtype]:checked').val();
     if (graphtype==undefined)
@@ -329,10 +311,7 @@ function RunPerformanceView() {
         return;
     }
     var viewname = $("#viewname").val(); 
-    if (viewname == '') {viewname = 'Unamed View';}
-    url = url + 'viewname=' + encodeURIComponent(viewname);
-
-    url = url + '&graphtype=' + graphtype;
+    if (viewname == '') {viewname = 'Unnamed View';}
 
     var interval = $('input[name=interval-num]').val();
     if (interval=='')
@@ -345,9 +324,12 @@ function RunPerformanceView() {
             return;
         }
     }
-    url = url + '&interval=' + interval;
-    url = url + '&counterList=' + encodeURIComponent(JSON.stringify(counterList));
-    
+        
+    localStorage.setItem('graphtype', graphtype)
+    localStorage.setItem('viewname', viewname)
+    localStorage.setItem('interval', interval)
+    localStorage.setItem('counterList', JSON.stringify(counterList))
+
     window.open(url);
 };
 
@@ -360,8 +342,8 @@ function ImportView(viewname) {
     var list = JSON.parse(viewList[viewname].counterList)
     for (counter in list) {
         var counterData = list[counter];
-        $("#counterListAll").append('<li class="list-group-item counter-main"> <pre>' + counterData.name + ' <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(this).parent().parent().remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterData.machine + '\', name:\'' + counterData.name + '\', index:' + counterData.index + '}),1)"></span></pre></li>');
-        counterList.push({machine: counterData.machine, name: counterData.name, index: counterData.index});
+        $("#counterListAll").append('<li class="list-group-item counter-main"> <pre>' + counterData.label + ' <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(this).parent().parent().remove();counterList.splice(counterList.indexOf(' + '{machine:\'' + counterData.machine + '\', name:\'' + counterData.name + '\', label:\'' + counterData.label + '\', index:' + counterData.index + '}),1)"></span></pre></li>');
+        counterList.push({machine: counterData.machine, label: counterData.label, name: counterData.name, index: counterData.index});
     }
     $('input[name=graphtype][value=' + viewList[viewname].graphtype + ']').attr('checked', 'checked');
 
@@ -387,7 +369,7 @@ function ImportView(viewname) {
 
 function PlayView(viewname) {
 
-    var url = "counterview.html?"
+    var url = "counterview.html"
 
     var graphtype = viewList[viewname].graphtype;
     if (graphtype==undefined)
@@ -396,9 +378,6 @@ function PlayView(viewname) {
         $('#runviewres').modal('show');
         return;
     }
-    url = url + 'viewname=' + encodeURIComponent(viewname);
-
-    url = url + '&graphtype=' + graphtype;
 
     var interval = viewList[viewname].interval;
     if (interval=='')
@@ -411,10 +390,13 @@ function PlayView(viewname) {
             return;
         }
     }
-    url = url + '&interval=' + interval;
-    url = url + '&counterList=' + encodeURIComponent(viewList[viewname].counterList);
     
-    window.open(url);
+    localStorage.setItem('graphtype', graphtype)
+    localStorage.setItem('viewname', viewname)
+    localStorage.setItem('interval', interval)
+    alert()
+    localStorage.setItem('counterList', JSON.stringify(viewList[viewname].counterList))
 
+    window.open(url);
 }
 

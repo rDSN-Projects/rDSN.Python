@@ -41,10 +41,11 @@ var chart;
 
 var viewChart = Vue.extend({
   template: '',
-  props: ['counterlist','graphtype','interval','currentValue','currentTime','stopFlag','info','updateSlotFunc'],
+  props: ['counterlist','graphtype','interval','currentValue','currentTime','stopFlag','info','updateSlotFunc','colorlist'],
   data: function () {
       return {
           NextSlot: [['x', 1]],
+          counterInfo: []
       }
   },
   methods: {
@@ -73,11 +74,18 @@ var viewChart = Vue.extend({
                 }
             }
         });
-
+    
         var self = this;
         this.updateSlotFunc = [];
+        this.currentValue = [];
+        this.currentTime = [];
+
         for (counter in this.counterlist)
         {
+            this.currentValue.push(0);
+            this.currentTime.push(0);
+            this.colorlist.push('black');
+            this.counterInfo.push({name:this.counterlist[counter].name,index:0});
             var newSlotUpdateFunc = setInterval(function (count) {
                 self.update_slot(count);
                 }, self.interval*1000, counter);
@@ -90,10 +98,10 @@ var viewChart = Vue.extend({
         for (counter in this.counterlist)
         {
             try{
-                var name = this.counterlist[counter]['name'];
+                var label = this.counterlist[counter]['label'];
                 chart.load({
                     rows: [
-                    [name],
+                    [label],
                     [this.currentValue[counter]]
                     ],
                 });
@@ -118,13 +126,15 @@ var viewChart = Vue.extend({
 
         for (counter in this.counterlist)
         {
-            var name = this.counterlist[counter]['name'];
+            var label = this.counterlist[counter]['label'];
             var BaseArrayAdd = Array.apply(null, Array(20)).map(function (_, i) {return 0;});
-            BaseArrayAdd.unshift(name);
+            BaseArrayAdd.unshift(label);
             BaseArray.push(BaseArrayAdd);
-            this.NextSlot.push([name, 0]);
+            this.NextSlot.push([label, 0]);
             this.currentValue.push(0);
             this.currentTime.push(0);
+            this.colorlist.push('black');
+            this.counterInfo.push({name:this.counterlist[counter].name,index:0});
         }
 
         chart = c3.generate({
@@ -153,7 +163,7 @@ var viewChart = Vue.extend({
       realtime_update_graph: function (index)
       {
         var self = this;
-        if(index>80)
+        /*(index>30)
         {
             for (counter in this.counterlist)
             {
@@ -161,7 +171,7 @@ var viewChart = Vue.extend({
             }
             chart = chart.destroy();
             this.realtime_init();
-        }
+        }*/
         chart.xgrids.add([{value: index+1, text:self.currentTime[0],class:'hoge'}]);
         chart.flow({
             columns: this.NextSlot,
@@ -175,12 +185,25 @@ var viewChart = Vue.extend({
       update_slot : function (counter)
       {
         var machine = this.counterlist[counter]['machine'];
-        var index = this.counterlist[counter]['index'];
-        var name = this.counterlist[counter]['name'];
         
+        if (this.stopFlag)
+        {
+            for (counter in this.counterlist)
+            {
+                clearInterval(this.updateSlotFunc[counter]);
+                this.colorlist.$set(counter,'blue');
+            }
+        }
+
         var self = this;
+        var command;
+        if(self.counterInfo[counter].index == 0)
+            command = "counter." + ((self.graphtype=='bar')?'value':self.graphtype) + " " + self.counterInfo[counter].name;
+        else
+            command = "counter." + ((self.graphtype=='bar')?'value':self.graphtype) + "i " + self.counterInfo[counter].index;
+
         $.post("http://" + machine + "/api/cli", {
-            command: "counter." + ((self.graphtype=='bar')?'value':self.graphtype) + "i " + index
+            command: command
         }, function(data){
             try {
                 data = JSON.parse(data);
@@ -189,36 +212,47 @@ var viewChart = Vue.extend({
                 data = {'val':'Invalid Data','time':'Invalid Data'};
             }
 
+            if(data['counter_name']!=self.counterInfo[counter].name)
+            {
+                self.counterInfo[counter].index = 0;
+                return;
+            }
+            else
+                self.counterInfo[counter].index = data['counter_index'];
+
             self.currentValue.$set(counter, data['val']);
             self.currentTime.$set(counter, nstostr(data['time']));
+            if (self.stopFlag)
+                self.colorlist.$set(counter,'blue');
+            else
+                self.colorlist.$set(counter,'black');
+
             if(self.graphtype!='bar')
                 self.NextSlot[Number(counter)+1][1]=data['val'];
         })
         .fail(function() {
-            self.stopFlag = 1;
-            for (counter in self.counterlist)
-            {
-                clearInterval(self.updateSlotFunc[counter]);
-            }
-            self.info = "Error: lost connection to the server " + machine;
-            $('#info-modal').modal('show');
-            return;
+            self.colorlist.$set(counter,'red');
         });
       },
   },
   ready: function () {
-      this.counterlist = JSON.parse(getParameterByName('counterList'));
-      this.graphtype = getParameterByName('graphtype');
-      this.interval = getParameterByName('interval');
+      this.counterlist = JSON.parse(localStorage['counterList']);
+      this.graphtype = localStorage['graphtype'];
+      this.interval = localStorage['interval'];
   }
 })
 
 var opButton = Vue.extend({
   template: '#opButton',
-  props: ['stopFlag'],
+  props: ['stopFlag','graphtype','viewname','interval','counterlist'],
   methods: {
-    newWindow: function () {
-        window.open(location.search);
+    refresh: function () {
+        localStorage.setItem('graphtype', this.graphtype);
+        localStorage.setItem('viewname', this.viewname);
+        localStorage.setItem('interval', this.interval);
+        localStorage.setItem('counterList', JSON.stringify(this.counterlist));
+        
+        location.reload();
     },
     stop: function () {
         this.stopFlag = 1 - this.stopFlag;
@@ -238,14 +272,15 @@ var vm = new Vue({
         stopFlag: 0,
         info: '',
         updateSlotFunc: [],
+        colorlist: []
     },
     components: {
         'view-chart': viewChart,
         'op-button': opButton,
     },
     ready: function () {
-        this.viewname = getParameterByName('viewname');
-        if (getParameterByName('graphtype')=='sample' || getParameterByName('graphtype')=='value')
+        this.viewname = localStorage['viewname'];
+        if (localStorage['graphtype']=='sample' || localStorage['graphtype']=='value')
             this.$refs.viewChart.realtime_init();   
         else if (this.graphtype=='bar')
             this.$refs.viewChart.bar_init();   
