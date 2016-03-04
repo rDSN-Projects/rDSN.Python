@@ -13,6 +13,34 @@
     background-color: #ffff00;
     cursor: pointer;
 }
+
+table {
+  width: 80%;
+  table-layout: fixed;
+  border: 2px solid #A8CD1B;
+  border-radius: 3px;
+  background-color: #fff;
+}
+
+th {
+  background-color: #A8CD1B;
+  color:  #fff;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -user-select: none;
+}
+
+td {
+  background-color: #f9f9f9;
+  word-wrap:break-word;
+}
+
+th, td {
+  min-width: 120px;
+  padding: 10px 20px;
+}
+
 </style>
 
 <div class="container">
@@ -28,12 +56,6 @@
 
 </div>
 <div class="container" style="margin-top:20px;">
-    <div class="row">
-        <div class="col-xs-10"></div>
-        <div class="col-xs-2">
-            <button class="btn btn-info" data-toggle="modal" data-target="#uploadpack1">App Registration </button>
-        </div>
-    </div>
     <div class="row">
         <table class="table table-striped" id="packList">
         <thead>
@@ -53,6 +75,12 @@
         <tbody>
         </tbody>
         </table>
+    </div>
+    <div class="row">
+        <div class="col-xs-10"></div>
+        <div class="col-xs-2">
+            <button class="btn btn-warning" data-toggle="modal" data-target="#uploadpack1">App Registration </button>
+        </div>
     </div>
 </div>
 
