@@ -519,6 +519,14 @@ class PageMulticmdHandler(BaseHandler):
     def get(self):
         self.render_template_Vue('multicmd.html')
 
+class PageServiceMetaHandler(BaseHandler):
+    def get(self):
+        self.render_template_Vue('service_meta.html')
+
+class PageMachineHandler(BaseHandler):
+    def get(self):
+        self.render_template_Vue('machine.html')
+
 class ApiCliHandler(BaseHandler):
     def get(self):
         command = self.request.get('command');
@@ -779,6 +787,129 @@ class ApiDelScenarioHandler(BaseHandler):
 
         self.response.write('success')
 
+class ApiFakeCliHandler(BaseHandler):
+    def post(self):
+        command = self.request.get('command')
+        queryRes = ''
+        if 'list_nodes' in command:
+            queryRes = '''
+                {
+                    "err":"",
+                    "infos":[
+                        {
+                            "status": "",
+                            "address": "localhost:8080"
+                        }
+                    ]
+                }
+                '''
+        elif 'query_config_by_node' in command:
+            queryRes = '''{
+                    "err":"",
+                    "partitions":[
+                        {
+                            "app_type": "stateful_primary",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 0},
+                            "primary": "localhost:8080",
+                            "secondaries": ["localhost:8081","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateful_secondary",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 1},
+                            "primary": "localhost:8081",
+                            "secondaries": ["localhost:8080","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateful_drop",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 2},
+                            "primary": "localhost:8081",
+                            "secondaries": ["localhost:8085","localhost:8082"],
+                            "last_drops": ["localhost:8080","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateless",
+                            "package_id": "233434543",
+                            "gpid": {"app_id": 3, "pidx": 3},
+                            "primary": "localhost:8089",
+                            "secondaries": ["localhost:8080","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        }
+                    ]
+                }'''
+        elif 'list_apps' in command:
+            queryRes = '''
+                {
+                    "err":"",
+                    "infos":[
+                        {
+                            "status": "normal",
+                            "app_type": "skv",
+                            "app_name": "chang",
+                            "app_id": "1",
+                            "partition_count": "3",
+                            "package_id": "423432",
+                            "is_stateful": "true"
+                        }
+                    ]
+                }
+                '''
+        elif 'query_config_by_app' in command:
+            queryRes = '''
+                {
+                    "err":"",
+                    "app_id": "1",
+                    "partition_count": "3",
+                    "is_stateful": true,
+                    "partitions":[
+                        {
+                            "app_type": "stateful_primary",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 0},
+                            "ballot": 100,
+                            "primary": "localhost:8080",
+                            "secondaries": ["localhost:8081","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateful_secondary",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 1},
+                            "ballot": 100,
+                            "primary": "localhost:8081",
+                            "secondaries": ["localhost:8080","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateful_drop",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 2},
+                            "ballot": 100,
+                            "primary": "localhost:8081",
+                            "secondaries": ["localhost:8085","localhost:8082"],
+                            "last_drops": ["localhost:8080","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateless",
+                            "package_id": "233434543",
+                            "gpid": {"app_id": 3, "pidx": 3},
+                            "ballot": 100,
+                            "primary": "localhost:8089",
+                            "secondaries": ["localhost:8080","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        }
+                    ]
+                }
+                '''
+            
+
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+        self.response.write(queryRes)
+
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(GetMonitorDirPath() + "/static")
     web_app = webapp2.WSGIApplication([
@@ -799,6 +930,8 @@ def start_http_server(portNum):
     ('/store.html', PageStoreHandler),
     ('/service.html', PageServiceHandler),
     ('/multicmd.html', PageMulticmdHandler),
+    ('/service_meta.html', PageServiceMetaHandler),
+    ('/machine.html', PageMachineHandler),
 
     ('/api/cli', ApiCliHandler),
     ('/api/bash', ApiBashHandler),
@@ -816,6 +949,7 @@ def start_http_server(portNum):
     ('/api/scenario/save', ApiSaveScenarioHandler),
     ('/api/scenario/load', ApiLoadScenarioHandler),
     ('/api/scenario/del', ApiDelScenarioHandler),
+    ('/api/fakecli', ApiFakeCliHandler),
 
     ('/app/(.+)', AppStaticFileHandler),
     ('/local/(.+)', LocalStaticFileHandler),
