@@ -1,4 +1,3 @@
-
 function AutoFill() {
     if ($('#packname').val() == '')
     {
@@ -88,6 +87,7 @@ function loadPackages() {
                 + '<td>' + message[i].description + '</td>'
                 + '<td><span class="glyphicon glyphicon-file" aria-hidden="true" onclick="window.location.href = \'fileview.html?working_dir=pack/' + message[i].uuid + '&root_dir=local\';"></span></td>'
                 + '<td><span class="glyphicon glyphicon-list-alt" aria-hidden="true"' + 'onclick="loadPackageDetail(\'' + message[i].uuid + '\');' + '$(\'#detail_modal\').modal(\'show\');"></span></td>'
+                + '<td><a href="local/pack/' + message[i].uuid +'/' + message[i].name + '.Tron.Composition.dll" download><span class="glyphicon glyphicon-save-file" aria-hidden="true"></span></a></td>'
                 + '<td><span class="glyphicon glyphicon-flash" aria-hidden="true" onclick="window.location.href = \'service.html?package_id=' + message[i].uuid +'\';"></span></td>'
                 + '<td><span class="glyphicon glyphicon-send" aria-hidden="true" onclick="SetPackageID(\'' + message[i].uuid + '\');LoadCluster(\'' + encodeURIComponent(JSON.stringify(message[i].cluster_type)) + '\');$(\'#deploypack\').modal(\'show\');"></span></td>'
                 + '<td><span class="glyphicon glyphicon-remove" aria-hidden="true" onclick="RemovePackage(\'' + message[i].name + '\');"></span></td>'

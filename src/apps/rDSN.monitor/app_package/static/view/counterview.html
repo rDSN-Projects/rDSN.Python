@@ -20,12 +20,18 @@
                 :stop-flag.sync="stopFlag"
                 :info.sync="info"
                 :update-slot-func.sync="updateSlotFunc"
+                :colorlist.sync="colorlist"
                 v-ref:view-chart></view-chart> 
     <div class="container" style="margin-top:20px;">
         <div class="row">
             <div class="col-xs-9"></div>
             <div class="col-xs-3">
-                <op-button :stop-flag.sync="stopFlag"></op-button>
+                <op-button 
+                    :viewname="viewname" 
+                    :counterlist="counterlist" 
+                    :graphtype="graphtype" 
+                    :interval="interval" 
+                    :stop-flag.sync="stopFlag"></op-button>
             </div>
         </div>
         <div class="row">
@@ -36,8 +42,8 @@
                         <tr><th>Counter Name</th><th>Counter Value</th><th>Local Time</th></tr>
                     </thead>
                     <tbody>
-                        <tr v-for="counter in counterlist">
-                            <td>{{counter['name']}}</td>
+                    <tr v-for="counter in counterlist" v-bind:style="{color:colorlist[$index]}">
+                            <td>{{counter['label']}}</td>
                             <td>{{currentValue[$index]}}</td>
                             <td>{{currentTime[$index]}}</td>
                         </tr>
@@ -81,7 +87,7 @@
 
 
 <template id="opButton">
-<button class="btn btn-info" @click="newWindow">New Window</button>
+<button class="btn btn-info" @click="refresh">Refresh</button>
 <button class="btn btn-danger" @click="stop">Stop</button>
 </template>
 

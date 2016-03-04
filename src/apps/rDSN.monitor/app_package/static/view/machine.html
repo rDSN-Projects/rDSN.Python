@@ -1,0 +1,80 @@
+{% extends "static/view/template.html" %}
+{% block body %}
+
+<style>
+.glyphicon:hover {
+    background-color: #ffff00;
+    cursor: pointer;
+}
+</style>
+<div id="app">
+    <div class="container">
+        <div class="page-header">
+        </div>
+
+        <div class="page-header">
+            <h1> <font color= #333333><center>Machine List</center></font>
+                <small><center><font color= #778899></font></center></small>
+            </h1>
+        </div>
+    </div>
+   
+    <div class="row">
+        <div class="col-xs-1"></div>
+        <div class="col-xs-10">
+            <div class="well" style="max-height: 500px;overflow: auto;">
+                <table class="table table-striped">
+                    <thead>
+                        <tr><th>Machine Name</th><th>App Type</th><th>Global Partition Id</th><th>Role</th><th>Working Point</th><th>Kill</th></tr>
+                    </thead>
+                    <tbody>
+                        <template v-for="machine in partitionList">
+                            <tr>
+                                <td rowspan={{machine.partitions.length}}>{{nodeList.infos[$index].address}}</td>
+                                <td>{{machine.partitions[0].app_type}}</td>
+                                <td>{{machine.partitions[0].gpid.app_id}}.{{machine.partitions[0].gpid.pidx}}</td>
+                                <td>{{machine.partitions[0].role}}</td>
+                                <td>{{machine.partitions[0].working_point}}</td>
+                                <td><span class="glyphicon glyphicon-remove" @click="del(nodeList.infos[$index].address,machine.partitions[0].role,machine.partitions[0].gpid)"></span></td>
+                            </tr>
+                            <tr v-for="index in (machine.partitions.length-1)">
+                                <td>{{machine.partitions[index+1].app_type}}</td>
+                                <td>{{machine.partitions[index+1].gpid.app_id}}.{{machine.partitions[index+1].gpid.pidx}}</td>
+                                <td>{{machine.partitions[index+1].role}}</td>
+                                <td>{{machine.partitions[index+1].working_point}}</td>
+                                <td><span class="glyphicon glyphicon-remove" @click="del(nodeList.infos[$parent.$index].address,machine.partitions[index+1].role,machine.partitions[index+1].gpid)"></span></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-xs-1"></div>
+    </div>
+
+    <div id="info-modal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Info</h4>
+          </div>
+          <div class="modal-body">
+              {{info}}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</div>
+
+<!--<script src="http://cdnjs.cloudflare.com/ajax/libs/vue/1.0.16/vue.min.js"></script>-->
+<script src="js/vue.js"></script>
+<script src="js/machine.js"></script>
+
+{% endblock %}
+

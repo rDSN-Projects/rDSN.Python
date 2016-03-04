@@ -438,68 +438,78 @@ class PageStoreHandler(BaseHandler):
         schema_type = self.request.get('schema_type')
         server_type = self.request.get('server_type')
         parameters = self.request.get('parameters')
+        uuid_val = str(uuid.uuid1())
 
         pack_dir = GetMonitorDirPath()+'/local/pack/'
         if not os.path.exists(pack_dir):
             os.makedirs(pack_dir)
 
+        savedFile = open(pack_dir + uuid_val + '.7z', 'wb')
+        savedFile.write(raw_file)
+        savedFile.close()
 
-        try:
-            conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
-            c = conn.cursor()
-            check_table(c)
+        iconFile = open(GetMonitorDirPath()+'/local/pack/'+ uuid_val + '.jpg', 'wb')
+        iconFile.write(raw_icon)
+        iconFile.close()
 
-            c.execute("SELECT * FROM pack WHERE name = '" + file_name + "'")
-            if c.fetchall()!=[]:
-                conn.close()
-                self.response.write('Upload fail! App "'+ file_name +'" already exists!')
-                return
-        
-            uuid_val = str(uuid.uuid1())
-            sql_cmd = "INSERT INTO pack VALUES " \
-                    + "('" + file_name \
-                    + "','" + author \
-                    + "','" + description \
-                    + "','" + uuid_val \
-                    + "','" + cluster_type \
-                    + "','" + schema_info \
-                    + "','" + schema_type \
-                    + "','" + server_type \
-                    + "','" + parameters \
-                    +  "');"
+        loc_of_7z = ''
+        #to detect if 7z exists
+        os_type = platform.system()
+        if os_type == 'Windows':
+            if subprocess.call(['where', '7z.exe']) == 0:
+                loc_of_7z = '7z.exe'
+        elif os_type == 'Linux':
+            if subprocess.call(['which', '7z']) == 0:
+                loc_of_7z = '7z'
+        if loc_of_7z =='':
+            self.response.write('Error: cannot find 7z')
+            return
 
-            c.execute(sql_cmd);
-            conn.commit()
+        subprocess.call([loc_of_7z,'x', pack_dir + uuid_val + '.7z','-y','-o'+os.path.join(pack_dir, uuid_val)])
 
+        loc_of_tron = ''
+        #to detect if Tron exists
+        if os_type == 'Windows':
+            if subprocess.call(['where', 'Tron.exe']) == 0:
+                loc_of_tron = 'Tron.exe'
+        elif os_type == 'Linux':
+            if subprocess.call(['which', 'Tron']) == 0:
+                loc_of_tron = 'Tron'
+        if loc_of_tron =='':
+            self.response.write('Error: cannot find Tron')
+            return
+
+        subprocess.call([loc_of_tron,'php','thrift', os.path.join(pack_dir,uuid_val,file_name + '.thrift')])
+        os.rename(os.path.join(os.path.abspath(os.path.join(loc_of_tron, os.pardir)),'tmp',file_name+'.Tron.Composition.dll'), os.path.join(pack_dir,uuid_val,file_name+'.Tron.Composition.dll'))
+
+        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text)")
+
+        c.execute("SELECT * FROM pack WHERE name = '" + file_name + "'")
+        if c.fetchall()!=[]:
             conn.close()
+            self.response.write('Upload fail! App "'+ file_name +'" already exists!')
+            return
+        
+        sql_cmd = "INSERT INTO pack VALUES " \
+                + "('" + file_name \
+                + "','" + author \
+                + "','" + description \
+                + "','" + uuid_val \
+                + "','" + cluster_type \
+                + "','" + schema_info \
+                + "','" + schema_type \
+                + "','" + server_type \
+                + "','" + parameters \
+                +  "');"
 
-            savedFile = open(pack_dir + uuid_val + '.7z', 'wb')
-            savedFile.write(raw_file)
-            savedFile.close()
+        c.execute(sql_cmd)
+        conn.commit()
 
-            loc_of_7z = ''
-            #to detect if 7z exists
-            os_type = platform.system()
-            if os_type == 'Windows':
-                if subprocess.call(['where', '7z.exe']) == 0:
-                    loc_of_7z = '7z.exe'
-            elif os_type == 'Linux':
-                if subprocess.call(['which', '7z']) == 0:
-                    loc_of_7z = '7z'
-            if loc_of_7z =='':
-                self.response.write('Error: cannot find '+exe_of_7z)
-                return
+        conn.close()
 
-            subprocess.call([loc_of_7z,'x', pack_dir + uuid_val + '.7z','-y','-o'+pack_dir + '/' + uuid_val])
-
-            
-            iconFile = open(GetMonitorDirPath()+'/local/pack/'+ uuid_val + '.jpg', 'wb')
-            iconFile.write(raw_icon)
-            iconFile.close()
-
-            return webapp2.redirect('/store.html')
-        except:
-            self.response.write('upload fail! Error:' + sys.exc_info()[0].__name__)
+        return webapp2.redirect('/store.html')
 
 class PageServiceHandler(BaseHandler):
     def get(self):
@@ -509,17 +519,25 @@ class PageMulticmdHandler(BaseHandler):
     def get(self):
         self.render_template_Vue('multicmd.html')
 
+class PageServiceMetaHandler(BaseHandler):
+    def get(self):
+        self.render_template_Vue('service_meta.html')
+
+class PageMachineHandler(BaseHandler):
+    def get(self):
+        self.render_template_Vue('machine.html')
+
 class ApiCliHandler(BaseHandler):
     def get(self):
         command = self.request.get('command');
         queryRes = Native.dsn_cli_run(command)
         self.response.write(queryRes)
+
     def post(self):
         command = self.request.get('command');
         queryRes = Native.dsn_cli_run(command)
 
         self.response.headers['Access-Control-Allow-Origin'] = '*'
-
         self.response.write(queryRes)
 
 class ApiBashHandler(BaseHandler):
@@ -769,6 +787,129 @@ class ApiDelScenarioHandler(BaseHandler):
 
         self.response.write('success')
 
+class ApiFakeCliHandler(BaseHandler):
+    def post(self):
+        command = self.request.get('command')
+        queryRes = ''
+        if 'list_nodes' in command:
+            queryRes = '''
+                {
+                    "err":"",
+                    "infos":[
+                        {
+                            "status": "",
+                            "address": "localhost:8080"
+                        }
+                    ]
+                }
+                '''
+        elif 'query_config_by_node' in command:
+            queryRes = '''{
+                    "err":"",
+                    "partitions":[
+                        {
+                            "app_type": "stateful_primary",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 0},
+                            "primary": "localhost:8080",
+                            "secondaries": ["localhost:8081","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateful_secondary",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 1},
+                            "primary": "localhost:8081",
+                            "secondaries": ["localhost:8080","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateful_drop",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 2},
+                            "primary": "localhost:8081",
+                            "secondaries": ["localhost:8085","localhost:8082"],
+                            "last_drops": ["localhost:8080","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateless",
+                            "package_id": "233434543",
+                            "gpid": {"app_id": 3, "pidx": 3},
+                            "primary": "localhost:8089",
+                            "secondaries": ["localhost:8080","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        }
+                    ]
+                }'''
+        elif 'list_apps' in command:
+            queryRes = '''
+                {
+                    "err":"",
+                    "infos":[
+                        {
+                            "status": "normal",
+                            "app_type": "skv",
+                            "app_name": "chang",
+                            "app_id": "1",
+                            "partition_count": "3",
+                            "package_id": "423432",
+                            "is_stateful": "true"
+                        }
+                    ]
+                }
+                '''
+        elif 'query_config_by_app' in command:
+            queryRes = '''
+                {
+                    "err":"",
+                    "app_id": "1",
+                    "partition_count": "3",
+                    "is_stateful": true,
+                    "partitions":[
+                        {
+                            "app_type": "stateful_primary",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 0},
+                            "ballot": 100,
+                            "primary": "localhost:8080",
+                            "secondaries": ["localhost:8081","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateful_secondary",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 1},
+                            "ballot": 100,
+                            "primary": "localhost:8081",
+                            "secondaries": ["localhost:8080","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateful_drop",
+                            "package_id": "",
+                            "gpid": {"app_id": 1, "pidx": 2},
+                            "ballot": 100,
+                            "primary": "localhost:8081",
+                            "secondaries": ["localhost:8085","localhost:8082"],
+                            "last_drops": ["localhost:8080","localhost:8084"]
+                        },
+                        {
+                            "app_type": "stateless",
+                            "package_id": "233434543",
+                            "gpid": {"app_id": 3, "pidx": 3},
+                            "ballot": 100,
+                            "primary": "localhost:8089",
+                            "secondaries": ["localhost:8080","localhost:8082"],
+                            "last_drops": ["localhost:8083","localhost:8084"]
+                        }
+                    ]
+                }
+                '''
+            
+
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+        self.response.write(queryRes)
+
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(GetMonitorDirPath() + "/static")
     web_app = webapp2.WSGIApplication([
@@ -789,6 +930,8 @@ def start_http_server(portNum):
     ('/store.html', PageStoreHandler),
     ('/service.html', PageServiceHandler),
     ('/multicmd.html', PageMulticmdHandler),
+    ('/service_meta.html', PageServiceMetaHandler),
+    ('/machine.html', PageMachineHandler),
 
     ('/api/cli', ApiCliHandler),
     ('/api/bash', ApiBashHandler),
@@ -806,6 +949,7 @@ def start_http_server(portNum):
     ('/api/scenario/save', ApiSaveScenarioHandler),
     ('/api/scenario/load', ApiLoadScenarioHandler),
     ('/api/scenario/del', ApiDelScenarioHandler),
+    ('/api/fakecli', ApiFakeCliHandler),
 
     ('/app/(.+)', AppStaticFileHandler),
     ('/local/(.+)', LocalStaticFileHandler),
