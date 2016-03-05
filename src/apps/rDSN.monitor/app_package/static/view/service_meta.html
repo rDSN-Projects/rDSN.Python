@@ -6,6 +6,39 @@
     background-color: #ffff00;
     cursor: pointer;
 }
+
+body {
+  font-family: Helvetica Neue, Arial, sans-serif;
+  font-size: 14px;
+  color: #444;
+}
+
+table {
+  width: 80%;
+  border: 2px solid #C63D0F;
+  border-radius: 3px;
+  background-color: #fff;
+}
+
+th {
+  background-color: #C63D0F;
+  color:  #fff;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -user-select: none;
+}
+
+td {
+  background-color: #f9f9f9;
+  word-wrap:break-word;
+}
+
+th, td {
+  max-width: 120px;
+  padding: 10px 20px;
+}
+
 </style>
 <div id="app">
     <div class="container">
@@ -22,31 +55,32 @@
     <div class="row">
         <div class="col-xs-1"></div>
         <div class="col-xs-10">
-            <div class="well" style="max-height: 500px;overflow: auto;">
-                <table class="table table-striped">
-                    <thead>
-                        <tr><th>Name</th><th>Type</th><th>Id</th><th>Status</th><th>Index</th><th>Ballot</th><th>Membership</th></tr>
-                    </thead>
-                    <tbody>
-                        <template v-for="app in partitionList">
-                            <tr>
-                                <td rowspan={{app.partitions.length}}>{{appList.infos[$index].app_name}}</td>
-                                <td rowspan={{app.partitions.length}}>{{appList.infos[$index].app_type}}</td>
-                                <td rowspan={{app.partitions.length}}>{{appList.infos[$index].app_id}}</td>
-                                <td rowspan={{app.partitions.length}}>{{appList.infos[$index].status}}</td>
-                                <td>{{app.partitions[0].gpid.pidx}}</td>
-                                <td>{{app.partitions[0].ballot}}</td>
-                                <td>{{app.partitions[0].membership}}</td>
-                            </tr>
-                            <tr v-for="index in (app.partitions.length-1)">
-                                <td>{{app.partitions[index+1].gpid.pidx}}</td>
-                                <td>{{app.partitions[index+1].ballot}}</td>
-                                <td>{{app.partitions[index+1].membership}}</td>
+            <table class="table table-striped">
+                <thead>
+                    <tr><th>Name</th><th>Type</th><th>Id</th><th>Status</th><th>Kill</th><th>Index</th><th>Ballot</th><th>Membership</th></tr>
+                </thead>
+                <tbody>
+                    <template v-for="app in appList.infos | filterBy filterKey in 'app_type'" >
+                        <tr>
+                            <td rowspan={{partitionList[$index].partitions.length}}>{{app.app_name}}</td>
+                            <td rowspan={{partitionList[$index].partitions.length}}>{{app.app_type}}</td>
+                            <td rowspan={{partitionList[$index].partitions.length}}>{{app.app_id}}</td>
+                            <td rowspan={{partitionList[$index].partitions.length}}>{{app.status}}</td>
+                            <td rowspan={{partitionList[$index].partitions.length}}><span class="glyphicon glyphicon-remove" @click="del(app.app_name)"></td>
+                            <td>{{partitionList[$index].partitions[0].gpid.pidx}}</td>
+                            <td>{{partitionList[$index].partitions[0].ballot}}</td>
+                            <td>{{partitionList[$index].partitions[0].membership}}</td>
+                        </tr>
+                        <template v-if="partitionList[$index].partitions.length>0">
+                            <tr v-for="index in (partitionList[$index].partitions.length-1)">
+                                <td>{{partitionList[$parent.$index].partitions[index+1].gpid.pidx}}</td>
+                                <td>{{partitionList[$parent.$index].partitions[index+1].ballot}}</td>
+                                <td>{{partitionList[$parent.$index].partitions[index+1].membership}}</td>
                             </tr>
                         </template>
-                    </tbody>
-                </table>
-            </div>
+                    </template>
+                </tbody>
+            </table>
         </div>
         <div class="col-xs-1"></div>
     </div>

@@ -426,7 +426,7 @@ class PageCounterViewHandler(BaseHandler):
         
 class PageStoreHandler(BaseHandler):
     def get(self):
-        self.render_template('store.html')
+        self.render_template_Vue('store.html')
     def post(self):
         raw_file = self.request.get('fileToUpload')
         raw_icon = self.request.get('iconToUpload')
@@ -438,53 +438,65 @@ class PageStoreHandler(BaseHandler):
         schema_type = self.request.get('schema_type')
         server_type = self.request.get('server_type')
         parameters = self.request.get('parameters')
-        uuid_val = str(uuid.uuid1())
+        if_stateful = self.request.get('if_stateful')
+        uuid_val = file_name 
 
-        pack_dir = GetMonitorDirPath()+'/local/pack/'
+        pack_dir = os.path.join(GetMonitorDirPath(),'local','pack')
         if not os.path.exists(pack_dir):
             os.makedirs(pack_dir)
 
-        savedFile = open(pack_dir + uuid_val + '.7z', 'wb')
+        bin_dir = os.path.join(os.path.dirname(GetMonitorDirPath()),'bin')
+        if not os.path.exists(bin_dir):
+            self.response.write('Error: cannot find ./bin folder')
+            return
+
+        savedFile = open(os.path.join(pack_dir, uuid_val + '.7z'), 'wb')
         savedFile.write(raw_file)
         savedFile.close()
 
-        iconFile = open(GetMonitorDirPath()+'/local/pack/'+ uuid_val + '.jpg', 'wb')
+        iconFile = open(os.path.join(pack_dir,uuid_val + '.jpg'), 'wb')
         iconFile.write(raw_icon)
         iconFile.close()
+
+        schemaFile = open(os.path.join(pack_dir, uuid_val + '.' + schema_type), 'wb')
+        schemaFile.write(schema_info)
+        schemaFile.close()
 
         loc_of_7z = ''
         #to detect if 7z exists
         os_type = platform.system()
         if os_type == 'Windows':
-            if subprocess.call(['where', '7z.exe']) == 0:
-                loc_of_7z = '7z.exe'
+            loc_of_7z = os.path.join(bin_dir,'7z.exe')
         elif os_type == 'Linux':
-            if subprocess.call(['which', '7z']) == 0:
-                loc_of_7z = '7z'
+            loc_of_7z = os.path.join(bin_dir,'7z')
         if loc_of_7z =='':
             self.response.write('Error: cannot find 7z')
             return
 
-        subprocess.call([loc_of_7z,'x', pack_dir + uuid_val + '.7z','-y','-o'+os.path.join(pack_dir, uuid_val)])
+        subprocess.call([loc_of_7z,'x', os.path.join(pack_dir, uuid_val) + '.7z','-y','-o'+os.path.join(pack_dir, uuid_val)])
 
         loc_of_tron = ''
         #to detect if Tron exists
         if os_type == 'Windows':
-            if subprocess.call(['where', 'Tron.exe']) == 0:
-                loc_of_tron = 'Tron.exe'
+            loc_of_tron = os.path.join(bin_dir,'Tron.exe')
         elif os_type == 'Linux':
-            if subprocess.call(['which', 'Tron']) == 0:
-                loc_of_tron = 'Tron'
+            loc_of_tron = os.path.join(bin_dir,'Tron')
         if loc_of_tron =='':
             self.response.write('Error: cannot find Tron')
             return
 
-        subprocess.call([loc_of_tron,'php','thrift', os.path.join(pack_dir,uuid_val,file_name + '.thrift')])
-        os.rename(os.path.join(os.path.abspath(os.path.join(loc_of_tron, os.pardir)),'tmp',file_name+'.Tron.Composition.dll'), os.path.join(pack_dir,uuid_val,file_name+'.Tron.Composition.dll'))
+        from subprocess import Popen, PIPE
+        p = Popen([loc_of_tron,'gcs','thrift','dsn', os.path.join(pack_dir,uuid_val + '.thrift')],stdin=subprocess.PIPE,stdout=subprocess.PIPE,cwd=bin_dir)
+        while p.poll() is None:
+            print p.stdout.readline()
+
+        os.rename(os.path.join(bin_dir,'tmp',uuid_val+'.Tron.Composition.dll'), os.path.join(pack_dir,uuid_val,file_name+'.Tron.Composition.dll'))
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text)")
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text,\
+            uuid text, cluster_type text, schema_info text, schema_type text, server_type text,\
+            parameters text, if_stateful text)")
 
         c.execute("SELECT * FROM pack WHERE name = '" + file_name + "'")
         if c.fetchall()!=[]:
@@ -502,6 +514,7 @@ class PageStoreHandler(BaseHandler):
                 + "','" + schema_type \
                 + "','" + server_type \
                 + "','" + parameters \
+                + "','" + if_stateful \
                 +  "');"
 
         c.execute(sql_cmd)
@@ -642,9 +655,9 @@ class ApiLoadPackHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text)")
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text, if_stateful text)")
         for pack in c.execute('SELECT * FROM pack'):
-            packList.append({'name':pack[0],'author':pack[1],'description':pack[2],'uuid':pack[3],'cluster_type':pack[4]})
+            packList.append({'name':pack[0],'author':pack[1],'description':pack[2],'uuid':pack[3],'cluster_type':pack[4],'if_stateful':pack[9]})
         conn.close()
         
         self.SendJson(packList)    
@@ -663,7 +676,7 @@ class ApiPackDetailHandler(BaseHandler):
 
         conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text)")
+        c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text, if_stateful text)")
 
         c.execute("SELECT * FROM pack WHERE uuid = '" + pack_id + "'")
         pack_info = c.fetchone()
@@ -791,121 +804,6 @@ class ApiFakeCliHandler(BaseHandler):
     def post(self):
         command = self.request.get('command')
         queryRes = ''
-        if 'list_nodes' in command:
-            queryRes = '''
-                {
-                    "err":"",
-                    "infos":[
-                        {
-                            "status": "",
-                            "address": "localhost:8080"
-                        }
-                    ]
-                }
-                '''
-        elif 'query_config_by_node' in command:
-            queryRes = '''{
-                    "err":"",
-                    "partitions":[
-                        {
-                            "app_type": "stateful_primary",
-                            "package_id": "",
-                            "gpid": {"app_id": 1, "pidx": 0},
-                            "primary": "localhost:8080",
-                            "secondaries": ["localhost:8081","localhost:8082"],
-                            "last_drops": ["localhost:8083","localhost:8084"]
-                        },
-                        {
-                            "app_type": "stateful_secondary",
-                            "package_id": "",
-                            "gpid": {"app_id": 1, "pidx": 1},
-                            "primary": "localhost:8081",
-                            "secondaries": ["localhost:8080","localhost:8082"],
-                            "last_drops": ["localhost:8083","localhost:8084"]
-                        },
-                        {
-                            "app_type": "stateful_drop",
-                            "package_id": "",
-                            "gpid": {"app_id": 1, "pidx": 2},
-                            "primary": "localhost:8081",
-                            "secondaries": ["localhost:8085","localhost:8082"],
-                            "last_drops": ["localhost:8080","localhost:8084"]
-                        },
-                        {
-                            "app_type": "stateless",
-                            "package_id": "233434543",
-                            "gpid": {"app_id": 3, "pidx": 3},
-                            "primary": "localhost:8089",
-                            "secondaries": ["localhost:8080","localhost:8082"],
-                            "last_drops": ["localhost:8083","localhost:8084"]
-                        }
-                    ]
-                }'''
-        elif 'list_apps' in command:
-            queryRes = '''
-                {
-                    "err":"",
-                    "infos":[
-                        {
-                            "status": "normal",
-                            "app_type": "skv",
-                            "app_name": "chang",
-                            "app_id": "1",
-                            "partition_count": "3",
-                            "package_id": "423432",
-                            "is_stateful": "true"
-                        }
-                    ]
-                }
-                '''
-        elif 'query_config_by_app' in command:
-            queryRes = '''
-                {
-                    "err":"",
-                    "app_id": "1",
-                    "partition_count": "3",
-                    "is_stateful": true,
-                    "partitions":[
-                        {
-                            "app_type": "stateful_primary",
-                            "package_id": "",
-                            "gpid": {"app_id": 1, "pidx": 0},
-                            "ballot": 100,
-                            "primary": "localhost:8080",
-                            "secondaries": ["localhost:8081","localhost:8082"],
-                            "last_drops": ["localhost:8083","localhost:8084"]
-                        },
-                        {
-                            "app_type": "stateful_secondary",
-                            "package_id": "",
-                            "gpid": {"app_id": 1, "pidx": 1},
-                            "ballot": 100,
-                            "primary": "localhost:8081",
-                            "secondaries": ["localhost:8080","localhost:8082"],
-                            "last_drops": ["localhost:8083","localhost:8084"]
-                        },
-                        {
-                            "app_type": "stateful_drop",
-                            "package_id": "",
-                            "gpid": {"app_id": 1, "pidx": 2},
-                            "ballot": 100,
-                            "primary": "localhost:8081",
-                            "secondaries": ["localhost:8085","localhost:8082"],
-                            "last_drops": ["localhost:8080","localhost:8084"]
-                        },
-                        {
-                            "app_type": "stateless",
-                            "package_id": "233434543",
-                            "gpid": {"app_id": 3, "pidx": 3},
-                            "ballot": 100,
-                            "primary": "localhost:8089",
-                            "secondaries": ["localhost:8080","localhost:8082"],
-                            "last_drops": ["localhost:8083","localhost:8084"]
-                        }
-                    ]
-                }
-                '''
-            
 
         self.response.headers['Access-Control-Allow-Origin'] = '*'
         self.response.write(queryRes)

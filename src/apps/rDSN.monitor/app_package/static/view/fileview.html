@@ -1,6 +1,24 @@
 {% extends "static/view/template.html" %}
 {% block body %}
-
+<style>
+.fileUpload {
+    position: relative;
+    overflow: hidden;
+    margin: 10px;
+}
+.fileUpload input.upload {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    filter: alpha(opacity=0);
+    background: #f44c0e;
+}
+</style>
 <div class="container">
 
 	<div class="page-header">
@@ -27,10 +45,18 @@ File listing:
 </ol>
 
 <form name="fileForm" method="post" onsubmit="return validateForm()" enctype="multipart/form-data">
-    Upload files to : app/{% for dir in DIR_LIST %}{{dir.name}}/{% endfor %}
-    <input type="text" name="file_name">
-    <input type="file" name="fileToUpload" id="fileToUpload">
-    <input type="submit" value="Upload" name="submit">
+    <div class="row">
+        <div class="col-xs-12">
+            Upload files to : app/{% for dir in DIR_LIST %}{{dir.name}}/{% endfor %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <input type="text" name="file_name">
+            <div class="fileUpload btn btn-warning"><span>Select Package</span><input type="file" name="fileToUpload" id="fileToUpload"  class="upload"></div>
+            <div class="fileUpload btn btn-success"><span>Submit</span><input type="submit" value="Upload" name="submit"  class="upload"></div>
+        </div>
+    </div>
 </form>
 
 <script>

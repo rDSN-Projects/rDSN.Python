@@ -2,8 +2,10 @@ var vm = new Vue({
     el: '#app',
     data:{
         nodeList: [],
+        nodeTotal: 0,
         partitionList: [],
         updateTimer: 0,
+        commonPort: '',
         info: ''
     },
     components: {
@@ -12,99 +14,86 @@ var vm = new Vue({
         update: function()
         {
             var self = this;
-            $.post("/api/fakecli", {
+            $.post("/api/cli", {
                 command: 'meta.list_nodes'
             }, function(nodedata){
                 try {
                     //self.nodeList = JSON.parse(nodedata);
-                    self.$set('nodeList', JSON.parse(nodedata))
+                    self.$set('nodeList', JSON.parse(nodedata));
                 }
                 catch(err) {
                 }
+                
+                if(self.nodeTotal !=self.nodeList.infos.length)
+                {
+                    self.nodeTotal = self.nodeList.infos.length;
+                    self.partitionList = [];
+                }
+
                 for (node in self.nodeList.infos)
                 {
-                    (function(node){
-                        $.post("/api/fakecli", {
-                            command: 'meta.query_config_by_node ' + self.nodeList.infos[node].address
+                    (function(nodeIndex){
+                        $.post("/api/cli", {
+                            command: 'meta.query_config_by_node {"req":{"node":"' + self.nodeList.infos[nodeIndex].address +'"}}'
                         }, function(servicedata){
                             try {
-                                self.$set('partitionList[node]', JSON.parse(servicedata))
-                                //console.log(JSON.stringify(self.partitionList));
+                                self.partitionList.$set(nodeIndex, JSON.parse(servicedata));
                             }
                             catch(err) {
-                                //console.log(err+ ' '+ servicedata);
                                 return;
                             }
                             
-                            for (partition in self.partitionList[node].partitions)
+                            for (partition in self.partitionList[nodeIndex].partitions)
                             {
-                                self.partitionList[node].partitions[partition].role = '';
-                                self.partitionList[node].partitions[partition].working_point = '';
+                                var par = self.partitionList[nodeIndex].partitions[partition];
+                                par.role = '';
+                                par.working_point = '';
 
-                                if(self.partitionList[node].partitions[partition].package_id=='')
+                                if(par.package_id=='')
                                 {
                                     //stateful service
-                                    if (self.partitionList[node].partitions[partition].primary == self.nodeList.infos[node].address)
+                                    if (par.primary == self.nodeList.infos[nodeIndex].address)
                                     {
-                                        self.partitionList[node].partitions[partition]['role'] = 'primary';
+                                        par['role'] = 'primary';
                                     }
-                                    else if (self.partitionList[node].partitions[partition].secondaries.indexOf(self.nodeList.infos[node].address) > -1)
+                                    else if (par.secondaries.indexOf(self.nodeList.infos[nodeIndex].address) > -1)
                                     {
-                                        self.partitionList[node].partitions[partition]['role'] = 'secondary';
+                                        par['role'] = 'secondary';
                                     }
-                                    else if (self.partitionList[node].partitions[partition].last_drops.indexOf(self.nodeList.infos[node].address) > -1)
+                                    else if (par.last_drops.indexOf(self.nodeList.infos[nodeIndex].address) > -1)
                                     {
-                                        self.partitionList[node].partitions[partition]['role'] = 'drop';
+                                        par['role'] = 'drop';
                                     }
                                     else
-                                        self.partitionList[node].partitions[partition]['role'] = 'undefined';
+                                        par['role'] = 'undefined';
                                 }
                                 else
                                 {
-                                    //console.log(JSON.stringify(self.partitionList[node]));
-                                    self.partitionList[node].partitions[partition]['working_point'] = self.partitionList[node].partitions[partition].last_drops[self.partitionList[node].partitions[partition].secondaries.indexOf(self.nodeList.infos[node].address)];
+                                    par['working_point'] = par.last_drops[par.secondaries.indexOf(self.nodeList.infos[nodeIndex].address)];
                                 }
                             }
 
                         })
-                        .fail(function() {
-                        });
                     })(node);
                 }
             })
-            .fail(function() {
-                clearInterval(self.updateTimer);
-                self.info = "Error: lost connection to the server";
-                $('#info-modal').modal('show');
-                return;
-            });
-
-
         },
         del: function (address, role, gpid)
         {
             var self = this;
                 
-            console.log(((role!='')?'replica.':'daemon.') + "kill_partition " + gpid.app_id + " " + gpid.pidx);
-            console.log(role);
-            $.post("http://" + address + "/api/cli", {
-                command: ((role!='')?'replica.':'daemon.') + "kill_partition " + gpid.app_id + " " + gpid.pidx
+            console.log(((role!='')?'replica.':'daemon1.') + "kill_partition " + gpid.app_id + " " + gpid.pidx);
+            $.post("http://" + address.split(":")[0] + ":8088/api/cli", {
+                command: ((role!='')?'replica.':'daemon1.') + "kill_partition " + gpid.app_id + " " + gpid.pidx
             }, function(data){
-                try {
-                }
-                catch(err) {
-                }
-            })
-            .fail(function() {
-                self.info = "Error: lost connection to the server";
-                $('#info-modal').modal('show');
-                return;
+                console.log(data);
             });
         }
     },
     ready: function ()
     {
         var self = this;
+        self.commonPort = window.location.href.split("/")[2].split(":")[1];
         self.update(); 
         //query each machine their service state
         updateTimer = setInterval(function () {

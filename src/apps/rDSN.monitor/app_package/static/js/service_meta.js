@@ -1,9 +1,19 @@
+//parameter parsing function
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
 var vm = new Vue({
     el: '#app',
     data:{
         appList: [],
         partitionList: [],
+        appTotal:0,
         updateTimer: 0,
+        filterKey:'',
         info: ''
     },
     components: {
@@ -12,7 +22,7 @@ var vm = new Vue({
         update: function()
         {
             var self = this;
-            $.post("/api/fakecli", {
+            $.post("/api/cli", {
                 command: 'meta.list_apps'
             }, function(appdata){
                 try {
@@ -20,25 +30,26 @@ var vm = new Vue({
                 }
                 catch(err) {
                 }
+
+                if(self.appTotal !=self.appList.infos.length)
+                {
+                    self.appTotal = self.appList.infos.length;
+                    self.partitionList = [];
+                }
+
                 for (app in self.appList.infos)
                 {
                     (function(app){
-                        $.post("/api/fakecli", {
-                            command: 'meta.query_config_by_app ' + self.appList.infos[app].app_name
+                        $.post("/api/cli", {
+                            command: 'meta.query_config_by_app {"req":{"app_name":"' + self.appList.infos[app].app_name + '","partition_indices":[]}}'
                         }, function(servicedata){
                             try {
-                                self.$set('partitionList[app]', JSON.parse(servicedata))
-
-                                //console.log(JSON.stringify(self.partitionList[app]));
-                                //console.log(servicedata);
-                                //console.log(JSON.stringify(self.partitionList));
+                                self.partitionList.$set(app, JSON.parse(servicedata))
                             }
                             catch(err) {
-                                //console.log(err+ ' '+ servicedata);
                                 return;
                             }
                             
-                            //console.log(JSON.stringify(self.partitionList));
                             for (partition in self.partitionList[app].partitions)
                             {
                                 var par = self.partitionList[app].partitions[partition];
@@ -46,7 +57,7 @@ var vm = new Vue({
 
                                 if(par.primary!='invalid address')
                                 {
-                                    par.membership += 'P: ("' + par.primary + '"), ';
+                                    par.membership += 'P: ("' + par.primary + '"),\n ';
                                     
                                 }
                                 else
@@ -70,42 +81,38 @@ var vm = new Vue({
                             }
 
                         })
-                        .fail(function() {
-                        });
                     })(app);
                 }
             })
-            .fail(function() {
-                clearInterval(self.updateTimer);
-                self.info = "Error: lost connection to the server";
-                $('#info-modal').modal('show');
-                return;
-            });
         },
-        del: function (address, role, gpid)
+        del: function (app_name)
         {
             var self = this;
                 
-            console.log(((role!='')?'replica.':'daemon.') + "kill_partition " + gpid.app_id + " " + gpid.pidx);
-            console.log(role);
-            $.post("http://" + address + "/api/cli", {
-                command: ((role!='')?'replica.':'daemon.') + "kill_partition " + gpid.app_id + " " + gpid.pidx
-            }, function(data){
-                try {
+            var command = "meta.drop_app ";
+            var jsObj = JSON.stringify({
+                req: {
+                    app_name: app_name,
+                    options: {
+                        success_if_not_exist: false
+                    }
                 }
-                catch(err) {
-                }
-            })
-            .fail(function() {
-                self.info = "Error: lost connection to the server";
-                $('#info-modal').modal('show');
-                return;
             });
+            command += jsObj;
+            $.post("/api/cli", { 
+                command: command
+                }, function(data){ 
+                    console.log(data);
+                }
+            );
+
         }
     },
     ready: function ()
     {
         var self = this;
+
+        self.filterKey = getParameterByName("filterKey");
         self.update(); 
         //query each machine their service state
         self.updateTimer = setInterval(function () {
