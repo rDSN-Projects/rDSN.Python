@@ -1,3 +1,11 @@
+//parameter parsing function
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
 $(function () {
     $('.list-group.checked-list-box .list-group-item').each(function () {
         
@@ -398,5 +406,16 @@ function PlayView(viewname) {
     localStorage.setItem('counterList', JSON.stringify(viewList[viewname].counterList))
 
     window.open(url);
+}
+
+var init_machine = getParameterByName("init_machine");
+if(init_machine != '')
+{
+setTimeout( function () {
+    $('#addcounter').modal('show');
+    var newMachine = '<li class="list-group-item machine" id="' + init_machine.replace(':','_') +'"><a onClick="Machine2App(\'' + init_machine + '\');$(\'.\'+$(this).parent().attr(\'class\').replace(\' \',\'.\')).css(\'background\',\'white\');$(this).parent().css(\'background\',\'#99ffcc\');">' + init_machine + '</a><span class="glyphicon glyphicon-remove pull-right" aria-hidden="true" onclick="$(\'#' + init_machine.replace(':','_') +'\').remove();"></span></li>';
+    $(newMachine).insertBefore("#addmachinebut");
+    console.log('Init machine loaded');
+},500);
 }
 

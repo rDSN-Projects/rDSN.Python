@@ -1,9 +1,19 @@
+//parameter parsing function
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
 var vm = new Vue({
     el: '#app',
     data:{
         appList: [],
         partitionList: [],
+        appTotal:0,
         updateTimer: 0,
+        filterKey:'',
         info: ''
     },
     components: {
@@ -20,6 +30,13 @@ var vm = new Vue({
                 }
                 catch(err) {
                 }
+
+                if(self.appTotal !=self.appList.infos.length)
+                {
+                    self.appTotal = self.appList.infos.length;
+                    self.partitionList = [];
+                }
+
                 for (app in self.appList.infos)
                 {
                     (function(app){
@@ -64,22 +81,38 @@ var vm = new Vue({
                             }
 
                         })
-                        .fail(function() {
-                        });
                     })(app);
                 }
             })
-            .fail(function() {
-                clearInterval(self.updateTimer);
-                self.info = "Error: lost connection to the server";
-                $('#info-modal').modal('show');
-                return;
+        },
+        del: function (app_name)
+        {
+            var self = this;
+                
+            var command = "meta.drop_app ";
+            var jsObj = JSON.stringify({
+                req: {
+                    app_name: app_name,
+                    options: {
+                        success_if_not_exist: false
+                    }
+                }
             });
+            command += jsObj;
+            $.post("/api/cli", { 
+                command: command
+                }, function(data){ 
+                    console.log(data);
+                }
+            );
+
         }
     },
     ready: function ()
     {
         var self = this;
+
+        self.filterKey = getParameterByName("filterKey");
         self.update(); 
         //query each machine their service state
         self.updateTimer = setInterval(function () {

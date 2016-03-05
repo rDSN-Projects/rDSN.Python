@@ -2,8 +2,10 @@ var vm = new Vue({
     el: '#app',
     data:{
         nodeList: [],
+        nodeTotal: 0,
         partitionList: [],
         updateTimer: 0,
+        commonPort: '',
         info: ''
     },
     components: {
@@ -17,10 +19,17 @@ var vm = new Vue({
             }, function(nodedata){
                 try {
                     //self.nodeList = JSON.parse(nodedata);
-                    self.$set('nodeList', JSON.parse(nodedata))
+                    self.$set('nodeList', JSON.parse(nodedata));
                 }
                 catch(err) {
                 }
+                
+                if(self.nodeTotal !=self.nodeList.infos.length)
+                {
+                    self.nodeTotal = self.nodeList.infos.length;
+                    self.partitionList = [];
+                }
+
                 for (node in self.nodeList.infos)
                 {
                     (function(nodeIndex){
@@ -28,7 +37,7 @@ var vm = new Vue({
                             command: 'meta.query_config_by_node {"req":{"node":"' + self.nodeList.infos[nodeIndex].address +'"}}'
                         }, function(servicedata){
                             try {
-                                self.partitionList.$set(nodeIndex, JSON.parse(servicedata))
+                                self.partitionList.$set(nodeIndex, JSON.parse(servicedata));
                             }
                             catch(err) {
                                 return;
@@ -65,44 +74,26 @@ var vm = new Vue({
                             }
 
                         })
-                        .fail(function() {
-                        });
                     })(node);
                 }
             })
-            .fail(function() {
-                clearInterval(self.updateTimer);
-                self.info = "Error: lost connection to the server";
-                $('#info-modal').modal('show');
-                return;
-            });
-
-
         },
         del: function (address, role, gpid)
         {
             var self = this;
                 
-            console.log(((role!='')?'replica.':'daemon.') + "kill_partition " + gpid.app_id + " " + gpid.pidx);
-            console.log(role);
-            $.post("http://" + address + "/api/cli", {
+            console.log(((role!='')?'replica.':'daemon1.') + "kill_partition " + gpid.app_id + " " + gpid.pidx);
+            $.post("http://" + address.split(":")[0] + ":8088/api/cli", {
                 command: ((role!='')?'replica.':'daemon1.') + "kill_partition " + gpid.app_id + " " + gpid.pidx
             }, function(data){
-                try {
-                }
-                catch(err) {
-                }
-            })
-            .fail(function() {
-                self.info = "Error: lost connection to the server";
-                $('#info-modal').modal('show');
-                return;
+                console.log(data);
             });
         }
     },
     ready: function ()
     {
         var self = this;
+        self.commonPort = window.location.href.split("/")[2].split(":")[1];
         self.update(); 
         //query each machine their service state
         updateTimer = setInterval(function () {

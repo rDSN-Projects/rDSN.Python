@@ -28,6 +28,7 @@ function validateForm() {
     document.forms["fileForm"]["schema_info"].value = $('#schema_info_in').val();
     document.forms["fileForm"]["schema_type"].value = $('#schema_type_in').val();
     document.forms["fileForm"]["server_type"].value = $('#server_type_in').val();
+    document.forms["fileForm"]["if_stateful"].value = $('#if_stateful').val();
 
     var param_table = document.getElementById('param_input_list');
     var row_len = param_table.rows.length;
@@ -88,8 +89,8 @@ function loadPackages() {
                 + '<td><span class="glyphicon glyphicon-file" aria-hidden="true" onclick="window.location.href = \'fileview.html?working_dir=pack/' + message[i].uuid + '&root_dir=local\';"></span></td>'
                 + '<td><span class="glyphicon glyphicon-list-alt" aria-hidden="true"' + 'onclick="loadPackageDetail(\'' + message[i].uuid + '\');' + '$(\'#detail_modal\').modal(\'show\');"></span></td>'
                 + '<td><a href="local/pack/' + message[i].uuid +'/' + message[i].name + '.Tron.Composition.dll" download><span class="glyphicon glyphicon-save-file" aria-hidden="true"></span></a></td>'
-                + '<td><span class="glyphicon glyphicon-flash" aria-hidden="true" onclick="window.location.href = \'service.html?package_id=' + message[i].uuid +'\';"></span></td>'
-                + '<td><span class="glyphicon glyphicon-send" aria-hidden="true" onclick="SetPackageID(\'' + message[i].uuid + '\');LoadCluster(\'' + encodeURIComponent(JSON.stringify(message[i].cluster_type)) + '\');$(\'#deploypack\').modal(\'show\');"></span></td>'
+                + '<td><span class="glyphicon glyphicon-flash" aria-hidden="true" onclick="window.location.href = \'service_meta.html?filterKey=' + message[i].uuid +'\';"></span></td>'
+                + '<td><span class="glyphicon glyphicon-send" aria-hidden="true" onclick="SetPackageToDeploy(\'' + message[i].uuid + '\',\''+message[i].if_stateful +'\');$(\'#deploypack\').modal(\'show\');"></span></td>'
                 + '<td><span class="glyphicon glyphicon-remove" aria-hidden="true" onclick="RemovePackage(\'' + message[i].name + '\');"></span></td>'
                 + '</tr>';
                 
@@ -116,67 +117,38 @@ function RemovePackage(name) {
     });
 }
 
-function DeployPackage(name,id,cluster_name) {
-    $.post("/api/pack/deploy", { name: name, id: id, cluster_name: cluster_name
-        }, function(data){ 
-            data = JSON.parse(data);
-            if (data['error']=='ERR_OK')
-            {
-                window.location.href = 'service.html';
-            }
-            else
-            {
-                alert("Deploy failed, Error code: " + data['error']);
+function DeployPackage() {
+    var command = "meta.create_app ";
+    var jsObj = JSON.stringify({
+        req: {
+            app_name: document.getElementById("app_name").value,
+            options: {
+                partition_count: parseInt(document.getElementById("partition_count").value),
+                replica_count: parseInt(document.getElementById("replica_count").value),
+                success_if_exist: ($('#success_if_exist').val()=='true')?true:false,
+                app_type: $('#package_id_to_deploy').val(),
+                is_stateful: ($('#if_stateful_to_deploy').val()=='true')?true:false,
+                package_id: $('#package_id_to_deploy').val()
             }
         }
-    )
-    .fail(function() {
-        alert( "Error: lost connection to the server" );
-        return;
+
     });
-}
-
-function SetPackageID(id) {
-    $('#package_id_to_deploy').val(id);
-}
-
-function LoadCluster(cluster_type_list) {
-    req = {"format":""};
+    command += jsObj;
     $.post("/api/cli", { 
-        command:"server.cluster_list " + JSON.stringify(req)
-        }, function(data){
-            if(~data.indexOf('unknown command'))
-            {
-                alert('Error: unknown command cluster_list');
-                return;
-            } 
-            data = JSON.parse(data)['clusters'];
-            result = "";
-            for(var cluster in data)
-            {
-                var clusterDisplay = data[cluster]['name'] + '(' + data[cluster]['type'] + ')';
-                result += '<li ';
-                var if_allowed = (cluster_type_list.indexOf(data[cluster]['type']) == -1);
-                if (if_allowed)
-                {
-                    result += 'class="disabled"';
-                }
-                result += '><a href="#" ';
-                if (!if_allowed)
-                {
-                    result += 'onclick="$(\'#clusterchoice\').text(\'' + clusterDisplay + '\');$(\'#cluster_name_to_deploy\').val(\'' + data[cluster]['name'] + '\');"'
-                }
-                result += '>' + clusterDisplay + '</a></li>' ;
-            }
-            $('#cluster_list ul > li').empty();
-            $('#cluster_list ul').append(result);
-            
+        command: command
+        }, function(data){ 
+            console.log(data);
         }
     )
     .fail(function() {
         alert( "Error: lost connection to the server" );
         return;
     });
+}
+
+function SetPackageToDeploy(name,if_stateful) {
+    $('#package_id_to_deploy').val(name);
+    $('#if_stateful_to_deploy').val(if_stateful);
 }
 
 document.getElementById("iconToUpload").onchange = function () {

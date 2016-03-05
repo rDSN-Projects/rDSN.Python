@@ -17,13 +17,13 @@
 table {
   width: 80%;
   table-layout: fixed;
-  border: 2px solid #A8CD1B;
+  border: 2px solid #005A31;
   border-radius: 3px;
   background-color: #fff;
 }
 
 th {
-  background-color: #A8CD1B;
+  background-color: #005A31;
   color:  #fff;
   cursor: pointer;
   -webkit-user-select: none;
@@ -79,7 +79,7 @@ th, td {
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button class="btn btn-warning" data-toggle="modal" data-target="#uploadpack1">App Registration </button>
+            <button class="btn btn-success" data-toggle="modal" data-target="#uploadpack1">App Registration </button>
         </div>
     </div>
 </div>
@@ -137,8 +137,8 @@ $( document ).ready(function() {
       <div class="modal-body">
         <div class="row">
             <div class="col-xs-4">
-                <label for="packname" >App Name</label>
-                <input id="packname">
+                <label for="packname"  >App Name</label>
+                <input id="packname" disabled="disabled">
             </div>
             <div class="col-xs-4">
                 <label for="author" >Author</label>
@@ -151,6 +151,15 @@ $( document ).ready(function() {
             <div class="col-xs-12">
                 <label for="description" >Descrption</label>
                 <textarea class="form-control" rows="2" id="description"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <label for="if_stateful" > If stateful</label>
+                <select class = "form-control" id = "if_stateful">
+                  <option value = "false">false</option>
+                  <option value = "true">true</option>
+                </select>
             </div>
         </div>
         <div class="row">
@@ -177,6 +186,7 @@ $( document ).ready(function() {
                 <input id="server_type" name="server_type" type="hidden" value=""></input>
                 <input id="schema_type" name="schema_type" type="hidden" value=""></input>
                 <input id="parameters" name="parameters" type="hidden" value=""></input>
+                <input id="if_stateful" name="if_stateful" type="hidden" value=""></input>
                 </form>
             </div>
         </div>
@@ -214,19 +224,19 @@ $( document ).ready(function() {
             <label for="schema_type_in" >schema type</label>
             <select class = "form-control" id = "schema_type_in">
               <option value = "thrift">thrift</option>
-              <option value = "bound">bound</option>
+              <option value = "bond">bond</option>
               <option value = "protobuf">protocol buffers</option>
             </select>
           </div>
         </div>
         <div class="row">
           <div class="col-xs-12">
-            <label for="server_type_in" >server type</label>
+            <label for="server_type_in" >runtime type</label>
             <select class = "form-control" id = "server_type_in">
-              <option value = "thrift">thrift</option>
-              <option value = "bound">bound</option>
-              <option value = "protobuf">protocol buffers</option>
               <option value = "rdsn">rdsn</option>
+              <option value = "thrift">thrift</option>
+              <option value = "bond">bond</option>
+              <option value = "protobuf">protocol buffers</option>
             </select>
           </div>
         </div>
@@ -261,10 +271,8 @@ $( document ).ready(function() {
                 <li class="list-group-item" index="docker">docker</li>
                 <li class="list-group-item" index="bare_medal_linux">bare_medal_linux</li>
                 <li class="list-group-item" index="bare_medal_windows">bare_medal_windows</li>
-                <li class="list-group-item" index="yarn_on_linux">yarn_on_linux</li>
-                <li class="list-group-item" index="yarn_on_windows">yarn_on_windows</li>
-                <li class="list-group-item" index="mesos_on_linux">mesos_on_linux</li>
-                <li class="list-group-item" index="mesos_on_windows">mesos_on_windows</li>
+                <li class="list-group-item" index="rdsn_linux">rdsn_linux</li>
+                <li class="list-group-item" index="rdsn_windows">rdsn_windows</li>
               </ul>
             </div>
           </div>
@@ -365,32 +373,40 @@ $( document ).ready(function() {
       <div class="modal-body">
         <div class="row">
             <div class="col-xs-4">
-                <label for="instancename" >Instance Name</label>
-                <input id="instancename">
+                <label for="app_name" >App Name</label>
+                <input id="app_name">
             </div>
-            <div class="col-xs-4">
-            </div>
-            <div class="col-xs-4">
-            </div>
+            <div class="col-xs-4"></div>
+            <div class="col-xs-4"></div>
         </div>
         <div class="row">
             <hr>
         </div>
         <div class="row">
             <div class="col-xs-4">
-            <div class="btn-group" id="cluster_list">
-                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"  data-toggle="tooltip" title="Choose task type">
-                    <span id="clusterchoice">Choose Cluster</span> <span class="caret"></span></button>
-                    <input id="cluster_name_to_deploy" name="cluster_name_to_deploy" type="hidden" value=""></input>
-                    <input id="package_id_to_deploy" name="package_id_to_deploy" type="hidden" value=""></input>
-                <ul class="dropdown-menu" role="menu">
-                </ul>
+                <label for="partition_count" >Partition Count</label>
+                <input id="partition_count">
             </div>
+            <div class="col-xs-4">
+                <label for="replica_count" >Replica Count</label>
+                <input id="replica_count">
+            </div>
+            <div class="col-xs-4">
+                <label for="success_if_exist" >Success if exists</label>
+                <select class = "form-control" id = "success_if_exist">
+                  <option value = "true">true</option>
+                  <option value = "false">false</option>
+                </select>
             </div>
         </div>
+        <div class="row">
+            <hr>
+        </div>
+        <input id="package_id_to_deploy" name="package_id_to_deploy" type="hidden" value=""></input>
+        <input id="if_stateful_to_deploy" name="if_stateful_to_deploy" type="hidden" value=""></input>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-dismiss="modal" onclick="DeployPackage($('input[id=instancename]').val(),$('input[id=package_id_to_deploy]').val(),$('input[id=cluster_name_to_deploy]').val());">Deploy</button>
+        <button type="button" class="btn btn-success" data-dismiss="modal" onclick="DeployPackage();">Deploy</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
