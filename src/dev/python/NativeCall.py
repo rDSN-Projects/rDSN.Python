@@ -156,3 +156,7 @@ class Native:
         dll_core.dsn_primary_address.restype = c_ulonglong
         return dll_core.dsn_primary_address()
 
+    @staticmethod
+    def dsn_config_get_meta_server():
+        dll_helper.dsn_config_get_meta_server_helper.restype = c_char_p
+        return dll_helper.dsn_config_get_meta_server_helper()

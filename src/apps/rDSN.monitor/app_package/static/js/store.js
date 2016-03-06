@@ -134,7 +134,7 @@ function DeployPackage() {
 
     });
     command += jsObj;
-    $.post("/api/cli", { 
+    $.post("http://" + metaServer + ":" + commonPort + "/api/cli", { 
         command: command
         }, function(data){ 
             console.log(data);
@@ -255,3 +255,13 @@ function getClusterType(){
     document.forms["fileForm"]["cluster_type"].value = JSON.stringify(clusterTypeList);
     
 }
+
+
+var metaServer,commonPort;
+$.post("/api/metaserverquery", { 
+    }, function(data){ 
+        console.log(data);
+        metaServer = data.split(":")[0];
+        commonPort = window.location.href.split("/")[2].split(":")[1];
+    }
+);

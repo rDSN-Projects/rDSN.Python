@@ -808,6 +808,12 @@ class ApiFakeCliHandler(BaseHandler):
         self.response.headers['Access-Control-Allow-Origin'] = '*'
         self.response.write(queryRes)
 
+class ApiMetaServerQueryHandler(BaseHandler):
+    def post(self):
+        queryRes = Native.dsn_config_get_meta_server()
+        print queryRes
+        self.response.write(queryRes)
+
 def start_http_server(portNum):  
     static_app = webob.static.DirectoryApp(GetMonitorDirPath() + "/static")
     web_app = webapp2.WSGIApplication([
@@ -848,6 +854,7 @@ def start_http_server(portNum):
     ('/api/scenario/load', ApiLoadScenarioHandler),
     ('/api/scenario/del', ApiDelScenarioHandler),
     ('/api/fakecli', ApiFakeCliHandler),
+    ('/api/metaserverquery', ApiMetaServerQueryHandler),
 
     ('/app/(.+)', AppStaticFileHandler),
     ('/local/(.+)', LocalStaticFileHandler),
