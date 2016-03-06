@@ -5,8 +5,8 @@ var vm = new Vue({
         nodeTotal: 0,
         partitionList: [],
         updateTimer: 0,
-        commonPort: '',
-        info: ''
+        metaServer: '',
+        commonPort: ''
     },
     components: {
     },
@@ -14,7 +14,7 @@ var vm = new Vue({
         update: function()
         {
             var self = this;
-            $.post("/api/cli", {
+            $.post("http://" + self.metaServer + ":" + self.commonPort + "/api/cli", {
                 command: 'meta.list_nodes'
             }, function(nodedata){
                 try {
@@ -33,7 +33,7 @@ var vm = new Vue({
                 for (node in self.nodeList.infos)
                 {
                     (function(nodeIndex){
-                        $.post("/api/cli", {
+                        $.post("http://" + self.metaServer + ":" + self.commonPort + "/api/cli", {
                             command: 'meta.query_config_by_node {"req":{"node":"' + self.nodeList.infos[nodeIndex].address +'"}}'
                         }, function(servicedata){
                             try {
@@ -82,9 +82,9 @@ var vm = new Vue({
         {
             var self = this;
                 
-            console.log(((role!='')?'replica.':'daemon1.') + "kill_partition " + gpid.app_id + " " + gpid.pidx);
-            $.post("http://" + address.split(":")[0] + ":8088/api/cli", {
-                command: ((role!='')?'replica.':'daemon1.') + "kill_partition " + gpid.app_id + " " + gpid.pidx
+            console.log(((role!='')?'replica.':'daemon.') + "kill_partition " + gpid.app_id + " " + gpid.pidx);
+            $.post("http://" + address.split(":")[0] + ":" + commonPort + "/api/cli", {
+                command: ((role!='')?'replica.':'daemon.') + "kill_partition " + gpid.app_id + " " + gpid.pidx
             }, function(data){
                 console.log(data);
             });
@@ -93,12 +93,18 @@ var vm = new Vue({
     ready: function ()
     {
         var self = this;
-        self.commonPort = window.location.href.split("/")[2].split(":")[1];
-        self.update(); 
-        //query each machine their service state
-        updateTimer = setInterval(function () {
-           self.update(); 
-        }, 1000);
+        $.post("/api/metaserverquery", { 
+            }, function(data){ 
+                console.log(data);
+                self.metaServer = data.split(":")[0];
+                self.commonPort = window.location.href.split("/")[2].split(":")[1];
+                self.update(); 
+                //query each machine their service state
+                self.updateTimer = setInterval(function () {
+                   self.update(); 
+                }, 1000);
+            }
+        );
     }
 });
 

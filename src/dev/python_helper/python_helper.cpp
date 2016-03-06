@@ -395,3 +395,14 @@ DSN_PY_API dsn_error_t dsn_app_bridge(int argc, const char** argv)
 
     return dsn::ERR_OK;
 }
+
+DSN_PY_API const char* dsn_config_get_meta_server_helper()
+{
+    const char* server_ss[10];
+    int capacity = 10, need_count;
+    need_count = dsn_config_get_all_keys("meta_servers", server_ss, &capacity);
+    int length = std::min<int>(strlen(server_ss[0]), 4 * 1024 * 1024 - 1);
+    strncpy(tls_buffer, server_ss[0], length);
+    tls_buffer[length] = '\0';
+    return tls_buffer;
+}

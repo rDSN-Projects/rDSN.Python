@@ -13,8 +13,9 @@ var vm = new Vue({
         partitionList: [],
         appTotal:0,
         updateTimer: 0,
-        filterKey:'',
-        info: ''
+        filterKey: '',
+        metaServer: '',
+        commonPort: ''
     },
     components: {
     },
@@ -22,7 +23,7 @@ var vm = new Vue({
         update: function()
         {
             var self = this;
-            $.post("/api/cli", {
+            $.post("http://" + self.metaServer + ":" + self.commonPort + "/api/cli", {
                 command: 'meta.list_apps'
             }, function(appdata){
                 try {
@@ -40,7 +41,7 @@ var vm = new Vue({
                 for (app in self.appList.infos)
                 {
                     (function(app){
-                        $.post("/api/cli", {
+                        $.post("http://" + self.metaServer + ":" + self.commonPort + "/api/cli", {
                             command: 'meta.query_config_by_app {"req":{"app_name":"' + self.appList.infos[app].app_name + '","partition_indices":[]}}'
                         }, function(servicedata){
                             try {
@@ -99,7 +100,7 @@ var vm = new Vue({
                 }
             });
             command += jsObj;
-            $.post("/api/cli", { 
+            $.post("http://" + self.metaServer + ":" + self.commonPort +"/api/cli", { 
                 command: command
                 }, function(data){ 
                     console.log(data);
@@ -113,11 +114,18 @@ var vm = new Vue({
         var self = this;
 
         self.filterKey = getParameterByName("filterKey");
-        self.update(); 
-        //query each machine their service state
-        self.updateTimer = setInterval(function () {
-           self.update(); 
-        }, 1000);
+        $.post("/api/metaserverquery", { 
+            }, function(data){ 
+                console.log(data);
+                self.metaServer = data.split(":")[0];
+                self.commonPort = window.location.href.split("/")[2].split(":")[1];
+                self.update(); 
+                //query each machine their service state
+                self.updateTimer = setInterval(function () {
+                   self.update(); 
+                }, 1000);
+            }
+        );
     }
 });
 
