@@ -402,8 +402,7 @@ function PlayView(viewname) {
     localStorage.setItem('graphtype', graphtype)
     localStorage.setItem('viewname', viewname)
     localStorage.setItem('interval', interval)
-    alert()
-    localStorage.setItem('counterList', JSON.stringify(viewList[viewname].counterList))
+    localStorage.setItem('counterList', viewList[viewname].counterList)
 
     window.open(url);
 }
