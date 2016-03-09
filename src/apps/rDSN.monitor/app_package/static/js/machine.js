@@ -81,9 +81,8 @@ var vm = new Vue({
         del: function (address, role, gpid)
         {
             var self = this;
-                
             console.log(((role!='')?'replica.':'daemon.') + "kill_partition " + gpid.app_id + " " + gpid.pidx);
-            $.post("http://" + address.split(":")[0] + ":" + commonPort + "/api/cli", {
+            $.post("http://" + address.split(":")[0] + ":" + self.commonPort + "/api/cli", {
                 command: ((role!='')?'replica.':'daemon.') + "kill_partition " + gpid.app_id + " " + gpid.pidx
             }, function(data){
                 console.log(data);

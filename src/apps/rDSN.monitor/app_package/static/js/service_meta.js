@@ -56,29 +56,41 @@ var vm = new Vue({
                                 var par = self.partitionList[app].partitions[partition];
                                 par.membership = '';
 
-                                if(par.primary!='invalid address')
+                                if(par.packageid=='')
                                 {
-                                    par.membership += 'P: ("' + par.primary + '"),\n ';
-                                    
+                                    if(par.primary!='invalid address')
+                                    {
+                                        par.membership += 'P: ("' + par.primary + '"),\n ';
+                                        
+                                    }
+                                    else
+                                    {
+                                        par.membership += 'P: (), ';
+                                    }
+
+                                    par.membership += 'S: [';
+                                    for (secondary in par.secondaries)
+                                    {
+                                        par.membership += '"' + par.secondaries[secondary]+ '",'
+                                    }
+                                    par.membership += '],';
+
+                                    par.membership += 'D: [';
+                                    for (drop in par.last_drops)
+                                    {
+                                        par.membership += '"' + par.last_drops[drop]+ '",'
+                                    }
+                                    par.membership += ']';
                                 }
                                 else
                                 {
-                                    par.membership += 'P: (), ';
+                                    par.membership += 'replicas: [';
+                                    for (secondary in par.secondaries)
+                                    {
+                                        par.membership += '"' + par.secondaries[secondary]+ '",'
+                                    }
+                                    par.membership += ']';
                                 }
-
-                                par.membership += 'S: [';
-                                for (secondary in par.secondaries)
-                                {
-                                    par.membership += '"' + par.secondaries[secondary]+ '",'
-                                }
-                                par.membership += '],';
-
-                                par.membership += 'D: [';
-                                for (drop in par.last_drops)
-                                {
-                                    par.membership += '"' + par.last_drops[drop]+ '",'
-                                }
-                                par.membership += ']';
                             }
 
                         })
