@@ -56,9 +56,18 @@ var vm = new Vue({
                                 var par = self.partitionList[app].partitions[partition];
                                 par.membership = '';
 
-                                if(par.primary!='invalid address')
+                                if(par.packageid=='')
                                 {
-                                    par.membership += 'P: ("' + par.primary + '"),\n ';
+                                    if(par.primary!='invalid address')
+                                    {
+                                        par.membership += 'P: ("' + par.primary + '"),\n ';
+                                        
+                                    }
+                                    else
+                                    {
+                                        par.membership += 'P: (), ';
+                                    }
+
                                     par.membership += 'S: [';
                                     for (secondary in par.secondaries)
                                     {
