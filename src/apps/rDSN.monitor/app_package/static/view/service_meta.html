@@ -59,26 +59,24 @@ th, td {
                 <thead>
                     <tr><th>Name</th><th>Type</th><th>Id</th><th>Status</th><th>Kill</th><th>Index</th><th>Ballot</th><th>Membership</th></tr>
                 </thead>
-                <tbody>
-                    <template v-for="app in appList.infos | filterBy filterKey in 'app_type'" >
-                        <tr>
-                            <td rowspan={{partitionList[$index].partitions.length}}>{{app.app_name}}</td>
-                            <td rowspan={{partitionList[$index].partitions.length}}>{{app.app_type}}</td>
-                            <td rowspan={{partitionList[$index].partitions.length}}>{{app.app_id}}</td>
-                            <td rowspan={{partitionList[$index].partitions.length}}>{{app.status}}</td>
-                            <td rowspan={{partitionList[$index].partitions.length}}><span class="glyphicon glyphicon-remove" @click="del(app.app_name)"></td>
-                            <td>{{partitionList[$index].partitions[0].gpid.pidx}}</td>
-                            <td>{{partitionList[$index].partitions[0].ballot}}</td>
-                            <td>{{partitionList[$index].partitions[0].membership}}</td>
+                <tbody v-for="app in appList.infos | filterBy filterKey in 'app_type'" >
+                    <tr>
+                        <td rowspan={{partitionList[$index].partitions.length}}>{{app.app_name}}</td>
+                        <td rowspan={{partitionList[$index].partitions.length}}>{{app.app_type}}</td>
+                        <td rowspan={{partitionList[$index].partitions.length}}>{{app.app_id}}</td>
+                        <td rowspan={{partitionList[$index].partitions.length}}>{{app.status}}</td>
+                        <td rowspan={{partitionList[$index].partitions.length}}><span class="glyphicon glyphicon-remove" @click="del(app.app_name)"></td>
+                        <td>{{partitionList[$index].partitions[0].gpid.pidx}}</td>
+                        <td>{{partitionList[$index].partitions[0].ballot}}</td>
+                        <td>{{partitionList[$index].partitions[0].membership}}</td>
+                    </tr>
+                    <tbody v-if="partitionList[$index].partitions.length>0">
+                        <tr v-for="index in (partitionList[$index].partitions.length-1)">
+                            <td>{{partitionList[$parent.$index].partitions[index+1].gpid.pidx}}</td>
+                            <td>{{partitionList[$parent.$index].partitions[index+1].ballot}}</td>
+                            <td>{{partitionList[$parent.$index].partitions[index+1].membership}}</td>
                         </tr>
-                        <template v-if="partitionList[$index].partitions.length>0">
-                            <tr v-for="index in (partitionList[$index].partitions.length-1)">
-                                <td>{{partitionList[$parent.$index].partitions[index+1].gpid.pidx}}</td>
-                                <td>{{partitionList[$parent.$index].partitions[index+1].ballot}}</td>
-                                <td>{{partitionList[$parent.$index].partitions[index+1].membership}}</td>
-                            </tr>
-                        </template>
-                    </template>
+                    </tbody>
                 </tbody>
             </table>
         </div>
