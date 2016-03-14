@@ -1,4 +1,4 @@
-from MonitorCodeDefinition import *
+from WebStudioCodeDefinition import *
 
 from paste.cascade import Cascade
 from paste import httpserver
@@ -29,7 +29,7 @@ import socket
 sys.path.append(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + '/app_package')
 
 #path helper functions
-def GetMonitorDirPath():
+def GetWebStudioDirPath():
     return os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 #jinja helper functions
@@ -72,7 +72,7 @@ class LocalStaticFileHandler(StaticFileHandler):
     def __init__(self, request, response):
         # Set self.request, self.response and self.app.
         self.initialize(request, response)
-        self.path = GetMonitorDirPath() + '/local/'
+        self.path = GetWebStudioDirPath() + '/local/'
 
 #webapp2 handlers
 
@@ -358,7 +358,7 @@ class PageFileViewHandler(BaseHandler):
         root_dir = self.request.get('root_dir')
         
         if root_dir == 'local':
-            dir = os.path.dirname(GetMonitorDirPath()+'/local/')
+            dir = os.path.dirname(GetWebStudioDirPath()+'/local/')
         elif root_dir == 'app':
             dir = os.path.dirname(os.getcwd()+"/")
         elif root_dir == '':
@@ -441,11 +441,11 @@ class PageStoreHandler(BaseHandler):
         if_stateful = self.request.get('if_stateful')
         uuid_val = file_name 
 
-        pack_dir = os.path.join(GetMonitorDirPath(),'local','pack')
+        pack_dir = os.path.join(GetWebStudioDirPath(),'local','pack')
         if not os.path.exists(pack_dir):
             os.makedirs(pack_dir)
 
-        bin_dir = os.path.join(os.path.dirname(GetMonitorDirPath()),'bin')
+        bin_dir = os.path.join(os.path.dirname(GetWebStudioDirPath()),'bin')
         if not os.path.exists(bin_dir):
             self.response.write('Error: cannot find ./bin folder')
             return
@@ -492,7 +492,7 @@ class PageStoreHandler(BaseHandler):
 
         os.rename(os.path.join(bin_dir,'tmp',uuid_val+'.Tron.Composition.dll'), os.path.join(pack_dir,uuid_val,file_name+'.Tron.Composition.dll'))
 
-        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetWebStudioDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text,\
             uuid text, cluster_type text, schema_info text, schema_type text, server_type text,\
@@ -596,11 +596,11 @@ class ApiSaveViewHandler(BaseHandler):
         graphtype = self.request.get('graphtype')
         interval = self.request.get('interval')
 
-        local_dir = GetMonitorDirPath()+'/local/'
+        local_dir = GetWebStudioDirPath()+'/local/'
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
 
-        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetWebStudioDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, description text, counterList text, graphtype text, interval text)")
         c.execute("DELETE FROM view WHERE name = '" + name + "';")
@@ -616,11 +616,11 @@ class ApiLoadViewHandler(BaseHandler):
     def post(self): 
         viewList = []
 
-        local_dir = GetMonitorDirPath()+'/local/'
+        local_dir = GetWebStudioDirPath()+'/local/'
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
 
-        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetWebStudioDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, description text, counterList text, graphtype text, interval text)")
         for view in c.execute('SELECT * FROM view'):
@@ -632,11 +632,11 @@ class ApiDelViewHandler(BaseHandler):
     def post(self): 
         name = self.request.get('name')
 
-        local_dir = GetMonitorDirPath()+'/local/'
+        local_dir = GetWebStudioDirPath()+'/local/'
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
 
-        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetWebStudioDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS view (name text, author text, description text, counterList text, graphtype text, interval text)")
         c.execute("DELETE FROM view WHERE name = '" + name + "';")
@@ -649,11 +649,11 @@ class ApiLoadPackHandler(BaseHandler):
     def post(self):
         packList = []
 
-        pack_dir = GetMonitorDirPath()+'/local/pack/'
+        pack_dir = GetWebStudioDirPath()+'/local/pack/'
         if not os.path.exists(pack_dir):
             os.makedirs(pack_dir)
 
-        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetWebStudioDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text, if_stateful text)")
         for pack in c.execute('SELECT * FROM pack'):
@@ -670,11 +670,11 @@ class ApiPackDetailHandler(BaseHandler):
             self.response.write("missing parameter package id")
             return
 
-        local_dir = GetMonitorDirPath()+'/local/'
+        local_dir = GetWebStudioDirPath()+'/local/'
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
 
-        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetWebStudioDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text, if_stateful text)")
 
@@ -697,11 +697,11 @@ class ApiPackDetailHandler(BaseHandler):
 class ApiDelPackHandler(BaseHandler):
     def post(self):
         packName = self.request.get('name')
-        pack_dir = GetMonitorDirPath()+'/local/pack/'
+        pack_dir = GetWebStudioDirPath()+'/local/pack/'
         if not os.path.exists(pack_dir):
             os.makedirs(pack_dir)
 
-        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetWebStudioDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS pack (name text, author text, desciprtion text, uuid text, cluster_type text, schema_info text, schema_type text, server_type text, parameters text)")
 
@@ -731,7 +731,7 @@ class ApiDeployPackHandler(BaseHandler):
         package_id = self.request.get('id')
         cluster_name = self.request.get('cluster_name')
 
-        package_full_path = GetMonitorDirPath() + '/local/pack/' + package_id + '.7z'
+        package_full_path = GetWebStudioDirPath() + '/local/pack/' + package_id + '.7z'
 
         #in order to use dsn_primary_address, use one empty command to trigger mimic 
         mimic_trigger = Native.dsn_cli_run('')
@@ -751,11 +751,11 @@ class ApiSaveScenarioHandler(BaseHandler):
         times = self.request.get('times')
 
         print name,author,description,machines,cmdtext,interval,times
-        local_dir = GetMonitorDirPath()+'/local/'
+        local_dir = GetWebStudioDirPath()+'/local/'
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
 
-        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetWebStudioDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS scenario (name text, author text, desciprtion text, machines text, cmdtext text, interval text, times text)")
         c.execute("DELETE FROM scenario WHERE name = '" + name + "';")
@@ -771,11 +771,11 @@ class ApiLoadScenarioHandler(BaseHandler):
     def post(self): 
         scenarioList = []
 
-        local_dir = GetMonitorDirPath()+'/local/'
+        local_dir = GetWebStudioDirPath()+'/local/'
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
 
-        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetWebStudioDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS scenario (name text, author text, desciprtion text, machines text, cmdtext text, interval text, times text)")
         for scenario in c.execute('SELECT * FROM scenario'):
@@ -787,11 +787,11 @@ class ApiDelScenarioHandler(BaseHandler):
     def post(self): 
         name = self.request.get('name')
 
-        local_dir = GetMonitorDirPath()+'/local/'
+        local_dir = GetWebStudioDirPath()+'/local/'
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
 
-        conn = sqlite3.connect(GetMonitorDirPath()+'/local/'+'monitor.db')
+        conn = sqlite3.connect(GetWebStudioDirPath()+'/local/'+'monitor.db')
         c = conn.cursor()
         c.execute("CREATE TABLE IF NOT EXISTS scenario (name text, author text, desciprtion text, machines text, cmdtext text)")
         c.execute("DELETE FROM scenario WHERE name = '" + name + "';")
@@ -815,7 +815,7 @@ class ApiMetaServerQueryHandler(BaseHandler):
         self.response.write(queryRes)
 
 def start_http_server(portNum):  
-    static_app = webob.static.DirectoryApp(GetMonitorDirPath() + "/static")
+    static_app = webob.static.DirectoryApp(GetWebStudioDirPath() + "/static")
     web_app = webapp2.WSGIApplication([
     ('/', PageMainHandler),
     ('/main.html', PageMainHandler),
