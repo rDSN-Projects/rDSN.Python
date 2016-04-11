@@ -3,6 +3,7 @@
 
 # include <dsn/service_api_cpp.h>
 # include <dsn/internal/ports.h>
+# include <dsn/cpp/json_helper.h>
 # include <iostream>
 # include <string.h>
 # include <time.h>
@@ -16,24 +17,8 @@
 # endif
 
 typedef int         dsn_error_t;
-// rDSN allows many apps in the same process for easy deployment and test
-// app ceate, start, and destroy callbacks
-typedef void*       (*dsn_app_create)(          // return app_context,
-	const char*     // type name registered on dsn_register_app_role
-	);
 
-typedef dsn_error_t(*dsn_app_start)(
-	void*,          // context return by app_create
-	int,            // argc
-	char**          // argv
-	);
-
-typedef void(*dsn_app_destroy)(
-	void*,          // context return by app_create
-	bool            // cleanup app state or not
-	);
-
-static void* app_create(const char* tname)
+static void* app_create(const char* tname, dsn_gpid gpid)
 {
 	// acquire Python's Global Interpreter Lock (GIL) before calling any Python API functions
 	PyGILState_STATE gstate;
@@ -403,6 +388,28 @@ DSN_PY_API const char* dsn_config_get_meta_server_helper()
     need_count = dsn_config_get_all_keys("meta_servers", server_ss, &capacity);
     int length = std::min<int>(strlen(server_ss[0]), 4 * 1024 * 1024 - 1);
     strncpy(tls_buffer, server_ss[0], length);
+    tls_buffer[length] = '\0';
+    return tls_buffer;
+}
+
+DSN_PY_API const char* dsn_config_get_all_keys_helper(const char* section)
+{
+    const char* config_ss[1000];
+    int capacity = 1000, need_count;
+    need_count = dsn_config_get_all_keys(section, config_ss, &capacity);
+
+    std::stringstream ss;
+    std::vector<std::string> keys;
+    for (auto key : config_ss)
+    {
+        if(!key) break;
+        keys.push_back(key);
+    }
+    std::json_encode(ss, keys);
+    
+    const char* ss_c_str = ss.str().c_str();
+    int length = std::min<int>(strlen(ss_c_str), 4 * 1024 * 1024 - 1);
+    strncpy(tls_buffer, ss_c_str, length);
     tls_buffer[length] = '\0';
     return tls_buffer;
 }
