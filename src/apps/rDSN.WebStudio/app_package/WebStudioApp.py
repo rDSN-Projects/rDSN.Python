@@ -1,4 +1,3 @@
-from WebStudioCodeDefinition import *
 from WebStudioLib import *
 from WebStudioUtil import *
 from WebStudioBase import *
@@ -24,8 +23,8 @@ def start_http_server(portNum):
         ('/multicmd.html', PageMulticmdHandler),
         ('/service_meta.html', PageServiceMetaHandler),
         ('/machine.html', PageMachineHandler),
+        ('/setting.html', PageSettingHandler),
 
-        ('/api/cli', ApiCliHandler),
         ('/api/bash', ApiBashHandler),
         ('/api/psutil', ApiPsutilHandler),
         ('/api/view/save', ApiSaveViewHandler),
@@ -37,7 +36,6 @@ def start_http_server(portNum):
         ('/api/scenario/save', ApiSaveScenarioHandler),
         ('/api/scenario/load', ApiLoadScenarioHandler),
         ('/api/scenario/del', ApiDelScenarioHandler),
-        ('/api/metaserverquery', ApiMetaServerQueryHandler),
 
         ('/app/(.+)', AppStaticFileHandler),
         ('/local/(.+)', LocalStaticFileHandler),

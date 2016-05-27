@@ -157,6 +157,6 @@ class Native:
         return dll_core.dsn_primary_address()
 
     @staticmethod
-    def dsn_config_get_meta_server():
-        dll_helper.dsn_config_get_meta_server_helper.restype = c_char_p
-        return dll_helper.dsn_config_get_meta_server_helper()
+    def dsn_config_get_all_keys(section):
+        dll_helper.dsn_config_get_all_keys_helper.restype = c_char_p
+        return dll_helper.dsn_config_get_all_keys_helper(section.encode())
